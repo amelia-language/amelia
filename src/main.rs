@@ -6,7 +6,7 @@ use std::str;
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::{alpha1, char, digit1, space0, one_of},
+    character::complete::{alpha1, char, digit1, one_of, space0},
     character::is_alphabetic,
     combinator::{cut, map, map_res, opt},
     error::{context, VerboseError},
@@ -17,7 +17,7 @@ use nom::{
 
 #[test]
 fn test() {
-    let syntax = "public struct Animal do \n public sound as String \n public age as Int \n end";
+    let syntax = "public struct Animal do \n public sound as String \n public age as Int32 \n end";
     recursive_parse(syntax);
     assert_eq!(1 + 1, 5);
 }
@@ -56,7 +56,7 @@ enum Operator {
 enum LogicalOperator {
     Not,
     And,
-    Or
+    Or,
 }
 
 #[derive(Debug, Clone)]
@@ -64,17 +64,20 @@ enum BuiltIn {
     Paren(char),
     Op(Operator),
     LogOp(LogicalOperator),
-    Int(u64),
+    Int(i64),
     Float(f64),
+    Usize(usize),
+    String(String),
+    Type(String),
     Boolean(bool),
     KeyWord(KeyWord),
-    NewLine
+    NewLine,
 }
 
 #[derive(Debug, Clone)]
 enum Lexer {
     BuiltIn(BuiltIn),
-    Identifier
+    Identifier(String),
 }
 
 fn recursive_parse<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
@@ -82,23 +85,34 @@ fn recursive_parse<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a s
         Ok(parsed) => {
             println!("{:#?}", parsed.1);
             recursive_parse(parsed.0)
-        },
+        }
         Err(error) => {
             println!("{:#?}", error);
             Err(error)
-        } 
+        }
     }
 }
 
 fn parse<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
-    alt((parse_builtin, 
-         map(preceded(space0, alpha1), |_| Lexer::Identifier),
-         map(preceded(space0, tag("\n")), |_| Lexer::BuiltIn(BuiltIn::NewLine))
+    alt((
+        parse_builtin,
+        map(preceded(space0, alpha1), |lexeme: &str| {
+            Lexer::Identifier(lexeme.to_string())
+        }),
+        map(preceded(space0, tag("\n")), |_| {
+            Lexer::BuiltIn(BuiltIn::NewLine)
+        }),
     ))(i)
 }
 
 fn parse_builtin<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
-    alt((parse_builtin_op, parse_builtin_log_op, parse_bool, parse_keyword))(i)
+    alt((
+        parse_builtin_op,
+        parse_builtin_log_op,
+        parse_bool,
+        parse_keyword,
+        parse_builtin_types,
+    ))(i)
 }
 
 fn parse_builtin_op<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
@@ -119,37 +133,102 @@ fn parse_builtin_op<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a 
 
 fn parse_builtin_log_op<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
     alt((
-        map(tag("not"), |_| Lexer::BuiltIn(BuiltIn::LogOp(LogicalOperator::Not))),
-        map(tag("and"), |_| Lexer::BuiltIn(BuiltIn::LogOp(LogicalOperator::And))),
-        map(tag("or"), |_|  Lexer::BuiltIn(BuiltIn::LogOp(LogicalOperator::Or))),
+        map(tag("not"), |_| {
+            Lexer::BuiltIn(BuiltIn::LogOp(LogicalOperator::Not))
+        }),
+        map(tag("and"), |_| {
+            Lexer::BuiltIn(BuiltIn::LogOp(LogicalOperator::And))
+        }),
+        map(tag("or"), |_| {
+            Lexer::BuiltIn(BuiltIn::LogOp(LogicalOperator::Or))
+        }),
     ))(i)
 }
 
 fn parse_bool<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
     alt((
-        map(tag("true"), |_|  Lexer::BuiltIn(BuiltIn::Boolean(true))),
+        map(tag("true"), |_| Lexer::BuiltIn(BuiltIn::Boolean(true))),
         map(tag("false"), |_| Lexer::BuiltIn(BuiltIn::Boolean(false))),
     ))(i)
 }
 
 fn parse_keyword<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
     alt((
-        map(preceded(space0, tag("if")), |_|   Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::If))),
-        map(preceded(space0, tag("then")), |_| Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Then))),
-        map(preceded(space0, tag("else")), |_| Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Else))),
-        map(preceded(space0, tag("for")), |_|  Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::For))),
-        map(preceded(space0, tag("in")), |_|   Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::In))),
-        map(preceded(space0, tag("do")), |_|   Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Do))),
-        map(preceded(space0, tag("end")), |_|  Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::End))),
-        map(preceded(space0, tag("public")), |_| Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Public))),
-        map(preceded(space0, tag("struct")), |_| Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Struct))),
-        map(preceded(space0, tag("implements")), |_| Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Implements))),
-        map(preceded(space0, tag("inherits")), |_| Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Inherits))),
-        map(preceded(space0, tag("as")), |_| Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::As))),
-        map(preceded(space0, tag("equal")), |_| Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Equal))),
-        map(preceded(space0, tag("function")), |_| Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Function))),
-        map(preceded(space0, tag("mutable")), |_| Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Mutable))),
-        map(preceded(space0, tag("borrow")), |_| Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Borrow))),
-        map(preceded(space0, tag("own")), |_| Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Own))),
+        map(preceded(space0, tag("if")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::If))
+        }),
+        map(preceded(space0, tag("then")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Then))
+        }),
+        map(preceded(space0, tag("else")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Else))
+        }),
+        map(preceded(space0, tag("for")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::For))
+        }),
+        map(preceded(space0, tag("in")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::In))
+        }),
+        map(preceded(space0, tag("do")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Do))
+        }),
+        map(preceded(space0, tag("end")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::End))
+        }),
+        map(preceded(space0, tag("public")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Public))
+        }),
+        map(preceded(space0, tag("struct")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Struct))
+        }),
+        map(preceded(space0, tag("implements")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Implements))
+        }),
+        map(preceded(space0, tag("inherits")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Inherits))
+        }),
+        map(preceded(space0, tag("as")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::As))
+        }),
+        map(preceded(space0, tag("equal")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Equal))
+        }),
+        map(preceded(space0, tag("function")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Function))
+        }),
+        map(preceded(space0, tag("mutable")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Mutable))
+        }),
+        map(preceded(space0, tag("borrow")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Borrow))
+        }),
+        map(preceded(space0, tag("own")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Own))
+        }),
     ))(i)
+}
+
+fn parse_builtin_types<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
+    alt((
+        parse_type(tag("String")),
+        parse_type(tag("Int32")),
+        parse_type(tag("Int64")),
+        parse_type(tag("UInt32")),
+        parse_type(tag("UInt64")),
+        parse_type(tag("Float32")),
+        parse_type(tag("Float64")),
+        parse_type(tag("USize")),
+        parse_type(tag("ISize")),
+    ))(i)
+}
+
+fn parse_type<'a, F>(
+    tag_fn: F,
+) -> impl Fn(&'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>>
+where
+    F: Fn(&'a str) -> IResult<&'a str, &'a str, VerboseError<&'a str>>,
+{
+    map(preceded(space0, tag_fn), |lexeme: &str| {
+        Lexer::BuiltIn(BuiltIn::Type(lexeme.to_string()))
+    })
 }
