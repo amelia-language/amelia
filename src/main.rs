@@ -1,4 +1,3 @@
-#[macro_use]
 extern crate nom;
 
 use std::str;
@@ -60,6 +59,22 @@ enum LogicalOperator {
 }
 
 #[derive(Debug, Clone)]
+enum BuiltInType {
+    String,
+    Int32,
+    Int64,
+    UInt32,
+    UInt64,
+    Float32,
+    Float64,
+    Usize,
+    Isize,
+    Array,
+    HashMap,
+    Tuple
+}
+
+#[derive(Debug, Clone)]
 enum BuiltIn {
     Paren(char),
     Op(Operator),
@@ -73,7 +88,7 @@ enum BuiltIn {
     Usize(usize),
     Isize(isize),
     String(String),
-    Type(String),
+    Type(BuiltInType),
     Boolean(bool),
     KeyWord(KeyWord),
     NewLine,
@@ -85,15 +100,16 @@ enum Lexer {
     Identifier(String),
 }
 
-fn recursive_parse<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
-    match parse(i) {
-        Ok(parsed) => {
-            println!("{:#?}", parsed.1);
-            recursive_parse(parsed.0)
-        }
-        Err(error) => {
-            println!("{:#?}", error);
-            Err(error)
+fn recursive_parse<'a>(i: &'a str) {
+    if i != "" {
+        match parse(i) {
+            Ok(parsed) => {
+                println!("{:#?}", parsed.1);
+                recursive_parse(parsed.0)
+            }
+            Err(error) => {
+                println!("{:#?}", error);
+            }
         }
     }
 }
@@ -215,29 +231,25 @@ fn parse_keyword<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str
     ))(i)
 }
 
-
-fn parse_type<'a, F>(
-    tag_fn: F,
-) -> impl Fn(&'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>>
-where
-    F: Fn(&'a str) -> IResult<&'a str, &'a str, VerboseError<&'a str>>,
-{
-    map(preceded(space0, tag_fn), |lexeme: &str| {
-        Lexer::BuiltIn(BuiltIn::Type(lexeme.to_string()))
-    })
+macro_rules! parse_type {
+    ($tag_fn:expr, $builtin_type:expr) => {
+        map(preceded(space0, $tag_fn), |_| {
+            Lexer::BuiltIn(BuiltIn::Type($builtin_type))
+        })
+    };
 }
 
 fn parse_builtin_types<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
     alt((
-        parse_type(tag("String")),
-        parse_type(tag("Int32")),
-        parse_type(tag("Int64")),
-        parse_type(tag("UInt32")),
-        parse_type(tag("UInt64")),
-        parse_type(tag("Float32")),
-        parse_type(tag("Float64")),
-        parse_type(tag("USize")),
-        parse_type(tag("ISize")),
+        parse_type!(tag("String"), BuiltInType::String),
+        parse_type!(tag("Int32"), BuiltInType::Int32),
+        parse_type!(tag("Int64"), BuiltInType::Int64),
+        parse_type!(tag("UInt32"), BuiltInType::UInt32),
+        parse_type!(tag("UInt64"), BuiltInType::UInt64),
+        parse_type!(tag("Float32"), BuiltInType::Float32),
+        parse_type!(tag("Float64"), BuiltInType::Float64),
+        parse_type!(tag("USize"), BuiltInType::Usize),
+        parse_type!(tag("ISize"), BuiltInType::Isize),
     ))(i)
 }
 
