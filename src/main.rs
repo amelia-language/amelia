@@ -1,14 +1,16 @@
+#[macro_use]
 extern crate nom;
 
 use std::str;
+use std::fs;
 
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::{alphanumeric1, char, digit1, one_of, space0},
+    character::complete::{alphanumeric1, char, digit1, one_of, space1, space0, newline, not_line_ending},
     character::is_alphabetic,
     combinator::{cut, map, map_res, opt},
-    error::{context, VerboseError},
+    error::{context, VerboseError, ErrorKind},
     multi::many0,
     sequence::{delimited, preceded, terminated, tuple},
     IResult,
@@ -16,8 +18,9 @@ use nom::{
 
 #[test]
 fn test() {
-    let syntax = "public struct Animal do \n public sound as String \n public age as Int32 \n end";
-    recursive_parse(syntax);
+    let contents = fs::read_to_string("examples/test1.am")
+        .expect("Something went wrong reading the syntax file");
+    recursive_parse(&contents);
     assert_eq!(1 + 1, 5);
 }
 
@@ -93,7 +96,8 @@ enum BuiltInValue {
 
 #[derive(Debug, Clone)]
 enum BuiltIn {
-    Paren(char),
+    OpenParen(char),
+    CloseParen(char),
     Op(Operator),
     LogOp(LogicalOperator),
     Type(BuiltInType),
@@ -126,16 +130,16 @@ fn recursive_parse<'a>(i: &'a str) {
 fn parse<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
     alt((
         parse_builtin,
-        map(preceded(space0, alphanumeric1), |lexeme: &str| {
+        map(preceded(space1, alphanumeric1), |lexeme: &str| {
             Lexer::Identifier(lexeme.to_string())
         }),
-        map(preceded(space0, tag("\n")), |_| {
+        map(preceded(space0, newline), |_| {
             Lexer::BuiltIn(BuiltIn::NewLine)
         }),
-        map(preceded(space0, tag("equal")), |_| {
+        map(preceded(space1, tag("equal")), |_| {
             Lexer::BuiltIn(BuiltIn::Op(Operator::Equal))
         }),
-        map(preceded(space0, tag("=")), |_| {
+        map(preceded(space1, tag("=")), |_| {
             Lexer::BuiltIn(BuiltIn::Assigns)
         }),
     ))(i)
@@ -191,22 +195,19 @@ fn parse_bool<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> 
 
 fn parse_keyword<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
     alt((
-        map(preceded(space0, tag("if")), |_| {
+        map(preceded(space1, tag("if")), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::If))
         }),
-        map(preceded(space0, tag("then")), |_| {
+        map(preceded(space1, tag("then")), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Then))
         }),
-        map(preceded(space0, tag("else")), |_| {
+        map(preceded(space1, tag("else")), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Else))
         }),
-        map(preceded(space0, tag("for")), |_| {
+        map(preceded(space1, tag("for")), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::For))
         }),
-        map(preceded(space0, tag("in")), |_| {
-            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::In))
-        }),
-        map(preceded(space0, tag("do")), |_| {
+        map(preceded(space1, tag("do")), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Do))
         }),
         map(preceded(space0, tag("end")), |_| {
@@ -221,28 +222,31 @@ fn parse_keyword<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str
         map(preceded(space0, tag("implements")), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Implements))
         }),
-        map(preceded(space0, tag("inherits")), |_| {
+        map(preceded(space1, tag("inherits")), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Inherits))
         }),
-        map(preceded(space0, tag("as")), |_| {
+        map(preceded(space1, tag("in")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::In))
+        }),
+        map(preceded(space1, tag("as")), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::As))
         }),
-        map(preceded(space0, tag("equal")), |_| {
+        map(preceded(space1, tag("equal")), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Equal))
         }),
         map(preceded(space0, tag("function")), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Function))
         }),
-        map(preceded(space0, tag("mutable")), |_| {
+        map(preceded(space1, tag("mutable")), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Mutable))
         }),
-        map(preceded(space0, tag("borrow")), |_| {
+        map(preceded(space1, tag("borrow")), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Borrow))
         }),
-        map(preceded(space0, tag("own")), |_| {
+        map(preceded(space1, tag("own")), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Own))
         }),
-        map(preceded(space0, tag("optional")), |_| {
+        map(preceded(space1, tag("optional")), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Optional))
         }),
         map(preceded(space0, tag("let")), |_| {
@@ -253,7 +257,7 @@ fn parse_keyword<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str
 
 macro_rules! parse_type {
     ($tag_fn:expr, $builtin_type:expr) => {
-        map(preceded(space0, $tag_fn), |_| {
+        map(preceded(space1, $tag_fn), |_| {
             Lexer::BuiltIn(BuiltIn::Type($builtin_type))
         })
     };
@@ -300,14 +304,28 @@ fn parse_builtin_num<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a
   ))(i)
 }
 
-fn parse_string<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
+fn parse_string<'a>(i: &'a [u8]) -> IResult<&'a [u8], Lexer, (&'a [u8], ErrorKind)> {
   context("string",
-    map(
-    preceded(
-      char('\"'),
-      cut(terminated(
-          alphanumeric1,
-          char('\"')
-    ))), |text: &str| Lexer::BuiltIn(BuiltIn::Value(BuiltInValue::String(text.to_string()))))
+    map(parse_string_bytes, |lexeme: &[u8]| {
+        Lexer::BuiltIn(
+            BuiltIn::Value(
+                BuiltInValue::String(
+                    String::from_utf8_lossy(lexeme).to_string()
+                )
+            )
+        )
+    })
   )(i)
 }
+
+
+fn parse_identifier<'a>(i: &'a [u8]) -> IResult<&'a [u8], Lexer, (&'a [u8], ErrorKind)> {
+    context("identifier",
+        map(parse_ident_bytes, |lexeme: &[u8]| {
+            Lexer::Identifier(String::from_utf8_lossy(lexeme).to_string())
+        })
+    )(i)
+}
+
+named!(parse_ident_bytes, re_bytes_match!(r"^_?[A-Za-z][0-9A-Z_a-z-]*"));
+named!(parse_string_bytes, re_bytes_match!(r#""\w.*""#));
