@@ -18,13 +18,13 @@ end
 
 let cat = Cat(name: "Flur", age: 1, playful: false)
 
-if cat.name equal "Flur" then
+if cat.name equal "Flur" then do
   println!("my name is Flur")
 else
   println!("my name is not Flur")
 end
 
-if cat.full_name not equal "Tom" then
+if cat.full_name not equal "Tom" then do
   println!("my name is not Tom")
 end
 
