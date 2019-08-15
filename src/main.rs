@@ -6,8 +6,16 @@ use std::fs;
 
 use nom::{
     branch::alt,
-    bytes::complete::{ tag, escaped },
-    character::complete::{alphanumeric1, char, digit1, one_of, space1, space0, newline, not_line_ending},
+    bytes::complete::{tag, escaped},
+    character::complete::{alphanumeric1, 
+                          char,
+                          digit1,
+                          one_of,
+                          space1,
+                          space0,
+                          newline,
+                          not_line_ending,
+                          multispace1},
     combinator::{cut, map, map_res},
     error::{context, VerboseError},
     sequence::{preceded, terminated},
@@ -102,7 +110,8 @@ enum BuiltIn {
     Value(BuiltInValue),
     KeyWord(KeyWord),
     NewLine,
-    Assigns
+    Assigns,
+    Comments
 }
 
 #[derive(Debug, Clone)]
@@ -134,10 +143,10 @@ fn parse<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
         map(preceded(space1, tag("=")), |_| {
             Lexer::BuiltIn(BuiltIn::Assigns)
         }),
-        map(preceded(space1, not_line_ending), |lexeme: &str| {
+        map(terminated(alphanumeric1, space1), |lexeme: &str| {
             Lexer::Identifier(lexeme.to_string())
         }),
-        map(preceded(space0, newline), |_| {
+        map(newline, |_| {
             Lexer::BuiltIn(BuiltIn::NewLine)
         }),
     ))(i)
@@ -145,6 +154,7 @@ fn parse<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
 
 fn parse_builtin<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
     alt((
+        parse_comments,
         parse_builtin_op,
         parse_builtin_log_op,
         parse_bool,
@@ -193,7 +203,7 @@ fn parse_bool<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> 
 
 macro_rules! parse_keyword {
     ($tag_fn:expr, $builtin_type:expr) => {
-        map(preceded(space0, terminated($tag_fn, space1)), |_| {
+        map(preceded(space0, terminated($tag_fn, multispace1)), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord($builtin_type))
         })
     };
@@ -219,13 +229,20 @@ fn parse_builtin_keyword<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError
         parse_keyword!(tag("borrow"), KeyWord::Borrow),
         parse_keyword!(tag("own"), KeyWord::Own),
         parse_keyword!(tag("optional"), KeyWord::Optional),
-        parse_keyword!(tag("let"), KeyWord::Let)
+        parse_keyword!(tag("let"), KeyWord::Let),
+        map(preceded(space0, terminated(tag("do"), newline)), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Do))
+        }),
+        map(preceded(space0, terminated(tag("end"), newline)), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::End))
+        })
+
     ))(i)
 }
 
 macro_rules! parse_type {
     ($tag_fn:expr, $builtin_type:expr) => {
-        map(preceded(space1, $tag_fn), |_| {
+        map(terminated($tag_fn, newline), |_| {
             Lexer::BuiltIn(BuiltIn::Type($builtin_type))
         })
     };
@@ -294,5 +311,12 @@ fn parse_string<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>
                 )
             )
         })
+  )(i)
+}
+
+fn parse_comments<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
+  context("comments",
+    map(
+        preceded(tag("// "), not_line_ending), |_| Lexer::BuiltIn(BuiltIn::Comments))
   )(i)
 }
