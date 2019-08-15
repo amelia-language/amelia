@@ -1,0 +1,36 @@
+// This is a testing file
+
+public struct Animal do
+  public name as String
+  public optional sound as String
+  public age as Int32
+end
+
+struct Cat inherits Animal do
+  playful as Boolean
+end
+
+implements Cat do
+  public function full_name(borrow self, last_name as String) as String do
+    format!("{} {}", self.name, last_name)
+  end
+end
+
+let cat = Cat(name: "Flur", age: 1, playful: false)
+
+if cat.name equal "Flur" then
+  println!("my name is Flur")
+else
+  println!("my name is not Flur")
+end
+
+if cat.full_name not equal "Tom" then
+  println!("my name is not Tom")
+end
+
+if (4 + 5 equal 9) and (7 + 8 not equal 20) then do
+  println!("This is printed")
+end
+
+println!("My full name is {}", cat.full_name("Doe"))
+  

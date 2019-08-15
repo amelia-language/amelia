@@ -40,6 +40,8 @@ enum KeyWord {
     Borrow,
     Own,
     In,
+    Optional,
+    Let,
 }
 
 #[derive(Debug, Clone)]
@@ -69,16 +71,14 @@ enum BuiltInType {
     Float64,
     Usize,
     Isize,
+    Boolean,
     Array,
     HashMap,
     Tuple
 }
 
 #[derive(Debug, Clone)]
-enum BuiltIn {
-    Paren(char),
-    Op(Operator),
-    LogOp(LogicalOperator),
+enum BuiltInValue {
     Int32(i32),
     Int64(i64),
     UInt32(u32),
@@ -88,10 +88,19 @@ enum BuiltIn {
     Usize(usize),
     Isize(isize),
     String(String),
-    Type(BuiltInType),
     Boolean(bool),
+}
+
+#[derive(Debug, Clone)]
+enum BuiltIn {
+    Paren(char),
+    Op(Operator),
+    LogOp(LogicalOperator),
+    Type(BuiltInType),
+    Value(BuiltInValue),
     KeyWord(KeyWord),
     NewLine,
+    Assigns
 }
 
 #[derive(Debug, Clone)]
@@ -123,6 +132,12 @@ fn parse<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
         map(preceded(space0, tag("\n")), |_| {
             Lexer::BuiltIn(BuiltIn::NewLine)
         }),
+        map(preceded(space0, tag("equal")), |_| {
+            Lexer::BuiltIn(BuiltIn::Op(Operator::Equal))
+        }),
+        map(preceded(space0, tag("=")), |_| {
+            Lexer::BuiltIn(BuiltIn::Assigns)
+        }),
     ))(i)
 }
 
@@ -139,7 +154,7 @@ fn parse_builtin<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str
 }
 
 fn parse_builtin_op<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
-    let (i, t) = one_of("+-*/=")(i)?;
+    let (i, t) = one_of("+-*/")(i)?;
 
     Ok((
         i,
@@ -148,7 +163,6 @@ fn parse_builtin_op<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a 
             '-' => Lexer::BuiltIn(BuiltIn::Op(Operator::Minus)),
             '*' => Lexer::BuiltIn(BuiltIn::Op(Operator::Times)),
             '/' => Lexer::BuiltIn(BuiltIn::Op(Operator::Divide)),
-            '=' => Lexer::BuiltIn(BuiltIn::Op(Operator::Equal)),
             _ => unreachable!(),
         },
     ))
@@ -170,8 +184,8 @@ fn parse_builtin_log_op<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<
 
 fn parse_bool<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
     alt((
-        map(tag("true"), |_| Lexer::BuiltIn(BuiltIn::Boolean(true))),
-        map(tag("false"), |_| Lexer::BuiltIn(BuiltIn::Boolean(false))),
+        map(tag("true"), |_| Lexer::BuiltIn(BuiltIn::Value(BuiltInValue::Boolean(true)))),
+        map(tag("false"), |_| Lexer::BuiltIn(BuiltIn::Value(BuiltInValue::Boolean(false)))),
     ))(i)
 }
 
@@ -228,6 +242,12 @@ fn parse_keyword<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str
         map(preceded(space0, tag("own")), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Own))
         }),
+        map(preceded(space0, tag("optional")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Optional))
+        }),
+        map(preceded(space0, tag("let")), |_| {
+            Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Let))
+        }),
     ))(i)
 }
 
@@ -250,6 +270,10 @@ fn parse_builtin_types<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&
         parse_type!(tag("Float64"), BuiltInType::Float64),
         parse_type!(tag("USize"), BuiltInType::Usize),
         parse_type!(tag("ISize"), BuiltInType::Isize),
+        parse_type!(tag("Boolean"), BuiltInType::Boolean),
+        parse_type!(tag("Array"), BuiltInType::Array),
+        parse_type!(tag("HashMap"), BuiltInType::HashMap),
+        parse_type!(tag("Tuple"), BuiltInType::Tuple),
     ))(i)
 }
 
@@ -257,7 +281,7 @@ macro_rules! parse_num {
     ($num_type:ty, $built_in_emu_type:expr) => {
         map_res(digit1, |digit_str: &str| {
             digit_str.parse::<$num_type>().map(|digit| {
-                Lexer::BuiltIn($built_in_emu_type(digit))
+                Lexer::BuiltIn(BuiltIn::Value($built_in_emu_type(digit)))
             })
         })
     };
@@ -265,14 +289,14 @@ macro_rules! parse_num {
 
 fn parse_builtin_num<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
   alt((
-    parse_num!(i32, BuiltIn::Int32),
-    parse_num!(i64, BuiltIn::Int64),
-    parse_num!(u32, BuiltIn::UInt32),
-    parse_num!(u64, BuiltIn::UInt64),
-    parse_num!(f32, BuiltIn::Float32),
-    parse_num!(f64, BuiltIn::Float64),
-    parse_num!(usize, BuiltIn::Usize),
-    parse_num!(isize, BuiltIn::Isize),
+    parse_num!(i32, BuiltInValue::Int32),
+    parse_num!(i64, BuiltInValue::Int64),
+    parse_num!(u32, BuiltInValue::UInt32),
+    parse_num!(u64, BuiltInValue::UInt64),
+    parse_num!(f32, BuiltInValue::Float32),
+    parse_num!(f64, BuiltInValue::Float64),
+    parse_num!(usize, BuiltInValue::Usize),
+    parse_num!(isize, BuiltInValue::Isize),
   ))(i)
 }
 
@@ -284,6 +308,6 @@ fn parse_string<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>
       cut(terminated(
           alphanumeric1,
           char('\"')
-    ))), |text: &str| Lexer::BuiltIn(BuiltIn::String(text.to_string())))
+    ))), |text: &str| Lexer::BuiltIn(BuiltIn::Value(BuiltInValue::String(text.to_string()))))
   )(i)
 }
