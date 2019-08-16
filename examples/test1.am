@@ -16,7 +16,7 @@ implements Cat do
   end
 end
 
-let cat_1 = Cat(name: "Flur", age: 1, playful: false)
+let cat_1 = Cat(name: "Fl%ur", age: 1, playful: false)
 let cat_2 = Cat(name: "Fofo", age: 2, playful: true)
 
 if cat_1.name equal "Flur" then do

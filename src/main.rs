@@ -21,7 +21,7 @@ use nom::{
                           multispace0},
     combinator::{cut, map, map_res},
     error::{context, VerboseError, ErrorKind, ParseError},
-    sequence::{preceded, terminated},
+    sequence::{preceded, terminated, delimited},
     IResult,
 };
 
@@ -105,8 +105,6 @@ enum BuiltInValue {
 
 #[derive(Debug, Clone)]
 enum BuiltIn {
-    OpenParen(char),
-    CloseParen(char),
     Op(Operator),
     LogOp(LogicalOperator),
     Type(BuiltInType),
@@ -114,14 +112,14 @@ enum BuiltIn {
     KeyWord(KeyWord),
     NewLine,
     Assigns,
-    Comments,
-    FunctionName(String)
+    Comments
 }
 
 #[derive(Debug, Clone)]
 enum Lexer {
     BuiltIn(BuiltIn),
     Identifier(String),
+    MacroInvk(String)
 }
 
 fn recursive_parse<'a>(i: &'a str) {
@@ -163,6 +161,7 @@ fn parse_builtin<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)
         parse_builtin_types,
         parse_builtin_num,
         parse_string,
+        parse_macro_invokation,
         parse_builtin_identifier,
     ))(i)
 }
@@ -205,7 +204,7 @@ fn parse_bool<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
 
 macro_rules! parse_keyword {
     ($tag_fn:expr, $builtin_type:expr) => {
-        map(preceded(multispace0, $tag_fn), |_| {
+        map(delimited(multispace0, $tag_fn, space1), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord($builtin_type))
         })
     };
@@ -244,7 +243,7 @@ fn parse_builtin_keyword<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, Er
 
 macro_rules! parse_type {
     ($tag_fn:expr, $builtin_type:expr) => {
-        map(preceded(space0, terminated($tag_fn, newline)), |_| {
+        map(delimited(space0, $tag_fn, alt((tag(","), tag(")"), tag("\n"), space1)) ), |_| {
             Lexer::BuiltIn(BuiltIn::Type($builtin_type))
         })
     };
@@ -325,9 +324,20 @@ fn parse_comments<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind
 
 fn parse_builtin_identifier<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
   context("identifier",
-    map(preceded(space1, take_while(is_alphanum_or_underscore)), |lexeme: &str| {
-        Lexer::Identifier(lexeme.to_string())
-    })
+    map(terminated(take_while(is_alphanum_or_underscore), 
+        alt((space1, tag("("), tag(","), tag(")")))), |lexeme: &str| {
+            Lexer::Identifier(lexeme.to_string())
+        }
+    )
+  )(i)
+}
+
+fn parse_macro_invokation<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
+  context("macro_invokation",
+    map(terminated(take_while(is_alphanum_or_underscore), tag("!(")), |lexeme: &str| {
+            Lexer::MacroInvk(lexeme.to_string())
+        }
+    )
   )(i)
 }
 
