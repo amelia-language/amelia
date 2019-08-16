@@ -5,13 +5,9 @@ use std::str;
 use std::fs;
 
 use nom::{
-    InputTakeAtPosition, AsChar,
     branch::alt,
-    bytes::complete::{tag, escaped, take_while},
-    character::is_alphanumeric,
-    character::complete::{alphanumeric1, 
-                          alpha1,
-                          char,
+    bytes::complete::{tag, take_while},
+    character::complete::{char,
                           digit1,
                           one_of,
                           space1,
@@ -19,8 +15,8 @@ use nom::{
                           newline,
                           not_line_ending,
                           multispace0},
-    combinator::{cut, map, map_res},
-    error::{context, VerboseError, ErrorKind, ParseError},
+    combinator::{map, map_res},
+    error::{context, ErrorKind},
     sequence::{preceded, terminated, delimited},
     IResult,
 };
