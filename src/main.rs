@@ -119,7 +119,8 @@ enum BuiltIn {
 enum Lexer {
     BuiltIn(BuiltIn),
     Identifier(String),
-    MacroInvk(String)
+    MacroInvk(String),
+    Argument(String)
 }
 
 fn recursive_parse<'a>(i: &'a str) {
@@ -141,7 +142,7 @@ fn parse<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
         map(preceded(space1, tag("equal")), |_| {
             Lexer::BuiltIn(BuiltIn::Op(Operator::Equal))
         }),
-        map(preceded(space1, tag("=")), |_| {
+        map(delimited(space0, tag("="), space0), |_| {
             Lexer::BuiltIn(BuiltIn::Assigns)
         }),
         map(newline, |_| {
@@ -162,6 +163,7 @@ fn parse_builtin<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)
         parse_builtin_num,
         parse_string,
         parse_macro_invokation,
+        parse_argument,
         parse_builtin_identifier,
     ))(i)
 }
@@ -290,19 +292,10 @@ fn parse_builtin_num<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorK
   ))(i)
 }
 
-fn parse_str<'a>(i: &'a str) -> IResult<&'a str, &'a str, (&'a str, ErrorKind)> {
-  escaped(alphanumeric1, '\\', one_of("\"n\\"))(i)
-}
-
 fn parse_string<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
   context("string",
     map(
-        preceded(
-        char('\"'),
-        cut(terminated(
-            parse_str,
-            char('\"')
-        ))),
+        delimited(char('\"'), take_while(parse_str), char('\"')),
         |lexeme: &str| {
             Lexer::BuiltIn(
                 BuiltIn::Value(
@@ -325,7 +318,7 @@ fn parse_comments<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind
 fn parse_builtin_identifier<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
   context("identifier",
     map(terminated(take_while(is_alphanum_or_underscore), 
-        alt((space1, tag("("), tag(","), tag(")")))), |lexeme: &str| {
+        alt((space1, tag("("), tag(","), tag("."), tag(")")))), |lexeme: &str| {
             Lexer::Identifier(lexeme.to_string())
         }
     )
@@ -341,6 +334,19 @@ fn parse_macro_invokation<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, E
   )(i)
 }
 
+fn parse_argument<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
+  context("argument",
+    map(terminated(take_while(is_alphanum_or_underscore), tag(":")), |lexeme: &str| {
+            Lexer::Argument(lexeme.to_string())
+        }
+    )
+  )(i)
+}
+
 pub fn is_alphanum_or_underscore(c: char) -> bool {
     c.is_alphanumeric() || c == '_'
+}
+
+fn parse_str(c: char) -> bool {
+    c != '"'
 }

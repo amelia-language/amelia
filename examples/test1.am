@@ -21,7 +21,7 @@ let cat_2 = Cat(name: "Fofo", age: 2, playful: true)
 
 if cat_1.name equal "Flur" then do
   println!("my name is Flur")
-else
+else do
   println!("my name is not Flur")
 end
 
