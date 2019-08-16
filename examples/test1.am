@@ -13,15 +13,19 @@ module my_test do
   end
 
   implements Cat do
-    public function full_name(borrow self, last_name as String) as String do
-      format!("{} {}", self.name, last_name)
+    public function full_name(borrow self, last_name as String) as Result<String, String> do
+      if last_name then do
+        Ok(format!("{} {}", self.name, last_name))
+      else do
+        Err("Missing last name")
+      end
     end
   end
 
   let cat_1 = Cat(name: "Fl%ur", age: 1, playful: false)
   let cat_2 = Cat(name: "Fofo", age: 2, playful: true)
 
-  if cat_1.name equal "Flur" then do
+  if cat_1.name equal "Fl%ur" then do
     println!("my name is Flur")
   else do
     println!("my name is not Flur")
