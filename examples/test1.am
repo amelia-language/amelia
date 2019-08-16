@@ -16,15 +16,16 @@ implements Cat do
   end
 end
 
-let cat = Cat(name: "Flur", age: 1, playful: false)
+let cat_1 = Cat(name: "Flur", age: 1, playful: false)
+let cat_2 = Cat(name: "Fofo", age: 2, playful: true)
 
-if cat.name equal "Flur" then do
+if cat_1.name equal "Flur" then do
   println!("my name is Flur")
 else
   println!("my name is not Flur")
 end
 
-if cat.full_name not equal "Tom" then do
+if cat_2.full_name not equal "Tom" then do
   println!("my name is not Tom")
 end
 

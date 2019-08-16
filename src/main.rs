@@ -5,9 +5,12 @@ use std::str;
 use std::fs;
 
 use nom::{
+    InputTakeAtPosition, AsChar,
     branch::alt,
-    bytes::complete::{tag, escaped},
+    bytes::complete::{tag, escaped, take_while},
+    character::is_alphanumeric,
     character::complete::{alphanumeric1, 
+                          alpha1,
                           char,
                           digit1,
                           one_of,
@@ -15,9 +18,9 @@ use nom::{
                           space0,
                           newline,
                           not_line_ending,
-                          multispace1},
+                          multispace0},
     combinator::{cut, map, map_res},
-    error::{context, VerboseError},
+    error::{context, VerboseError, ErrorKind, ParseError},
     sequence::{preceded, terminated},
     IResult,
 };
@@ -111,7 +114,8 @@ enum BuiltIn {
     KeyWord(KeyWord),
     NewLine,
     Assigns,
-    Comments
+    Comments,
+    FunctionName(String)
 }
 
 #[derive(Debug, Clone)]
@@ -124,7 +128,7 @@ fn recursive_parse<'a>(i: &'a str) {
     if i != "" {
         match parse(i) {
             Ok(parsed) => {
-                println!("{:#?}", parsed.1);
+                println!("parsed1: {:#?}", parsed.1);
                 recursive_parse(parsed.0)
             }
             Err(error) => {
@@ -134,25 +138,22 @@ fn recursive_parse<'a>(i: &'a str) {
     }
 }
 
-fn parse<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
+fn parse<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
     alt((
-        parse_builtin,
         map(preceded(space1, tag("equal")), |_| {
             Lexer::BuiltIn(BuiltIn::Op(Operator::Equal))
         }),
         map(preceded(space1, tag("=")), |_| {
             Lexer::BuiltIn(BuiltIn::Assigns)
         }),
-        map(terminated(alphanumeric1, space1), |lexeme: &str| {
-            Lexer::Identifier(lexeme.to_string())
-        }),
         map(newline, |_| {
             Lexer::BuiltIn(BuiltIn::NewLine)
         }),
+        parse_builtin,
     ))(i)
 }
 
-fn parse_builtin<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
+fn parse_builtin<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
     alt((
         parse_comments,
         parse_builtin_op,
@@ -161,11 +162,12 @@ fn parse_builtin<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str
         parse_builtin_keyword,
         parse_builtin_types,
         parse_builtin_num,
-        parse_string
+        parse_string,
+        parse_builtin_identifier,
     ))(i)
 }
 
-fn parse_builtin_op<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
+fn parse_builtin_op<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
     let (i, t) = one_of("+-*/")(i)?;
 
     Ok((
@@ -180,7 +182,7 @@ fn parse_builtin_op<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a 
     ))
 }
 
-fn parse_builtin_log_op<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
+fn parse_builtin_log_op<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
     alt((
         map(tag("not"), |_| {
             Lexer::BuiltIn(BuiltIn::LogOp(LogicalOperator::Not))
@@ -194,7 +196,7 @@ fn parse_builtin_log_op<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<
     ))(i)
 }
 
-fn parse_bool<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
+fn parse_bool<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
     alt((
         map(tag("true"), |_| Lexer::BuiltIn(BuiltIn::Value(BuiltInValue::Boolean(true)))),
         map(tag("false"), |_| Lexer::BuiltIn(BuiltIn::Value(BuiltInValue::Boolean(false)))),
@@ -203,13 +205,13 @@ fn parse_bool<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> 
 
 macro_rules! parse_keyword {
     ($tag_fn:expr, $builtin_type:expr) => {
-        map(preceded(space0, terminated($tag_fn, multispace1)), |_| {
+        map(preceded(multispace0, $tag_fn), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord($builtin_type))
         })
     };
 }
 
-fn parse_builtin_keyword<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
+fn parse_builtin_keyword<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
     alt((
         parse_keyword!(tag("if"), KeyWord::If),
         parse_keyword!(tag("then"), KeyWord::Then),
@@ -242,13 +244,13 @@ fn parse_builtin_keyword<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError
 
 macro_rules! parse_type {
     ($tag_fn:expr, $builtin_type:expr) => {
-        map(terminated($tag_fn, newline), |_| {
+        map(preceded(space0, terminated($tag_fn, newline)), |_| {
             Lexer::BuiltIn(BuiltIn::Type($builtin_type))
         })
     };
 }
 
-fn parse_builtin_types<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
+fn parse_builtin_types<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
     alt((
         parse_type!(tag("String"), BuiltInType::String),
         parse_type!(tag("Int32"), BuiltInType::Int32),
@@ -276,7 +278,7 @@ macro_rules! parse_num {
     };
 }
 
-fn parse_builtin_num<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
+fn parse_builtin_num<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
   alt((
     parse_num!(i32, BuiltInValue::Int32),
     parse_num!(i64, BuiltInValue::Int64),
@@ -289,11 +291,11 @@ fn parse_builtin_num<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a
   ))(i)
 }
 
-fn parse_str<'a>(i: &'a str) -> IResult<&'a str, &'a str, VerboseError<&'a str>> {
+fn parse_str<'a>(i: &'a str) -> IResult<&'a str, &'a str, (&'a str, ErrorKind)> {
   escaped(alphanumeric1, '\\', one_of("\"n\\"))(i)
 }
 
-fn parse_string<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
+fn parse_string<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
   context("string",
     map(
         preceded(
@@ -314,9 +316,21 @@ fn parse_string<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>
   )(i)
 }
 
-fn parse_comments<'a>(i: &'a str) -> IResult<&'a str, Lexer, VerboseError<&'a str>> {
+fn parse_comments<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
   context("comments",
     map(
         preceded(tag("// "), not_line_ending), |_| Lexer::BuiltIn(BuiltIn::Comments))
   )(i)
+}
+
+fn parse_builtin_identifier<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
+  context("identifier",
+    map(preceded(space1, take_while(is_alphanum_or_underscore)), |lexeme: &str| {
+        Lexer::Identifier(lexeme.to_string())
+    })
+  )(i)
+}
+
+pub fn is_alphanum_or_underscore(c: char) -> bool {
+    c.is_alphanumeric() || c == '_'
 }
