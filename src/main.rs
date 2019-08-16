@@ -50,6 +50,8 @@ enum KeyWord {
     In,
     Optional,
     Let,
+    Module,
+    Derive
 }
 
 #[derive(Debug, Clone)]
@@ -154,7 +156,8 @@ fn parse_builtin<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)
         parse_builtin_op,
         parse_builtin_log_op,
         parse_bool,
-        parse_builtin_keyword,
+        parse_builtin_keyword1,
+        parse_builtin_keyword2,
         parse_builtin_types,
         parse_builtin_num,
         parse_string,
@@ -208,7 +211,7 @@ macro_rules! parse_keyword {
     };
 }
 
-fn parse_builtin_keyword<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
+fn parse_builtin_keyword1<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
     alt((
         parse_keyword!(tag("if"), KeyWord::If),
         parse_keyword!(tag("then"), KeyWord::Then),
@@ -229,13 +232,19 @@ fn parse_builtin_keyword<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, Er
         parse_keyword!(tag("own"), KeyWord::Own),
         parse_keyword!(tag("optional"), KeyWord::Optional),
         parse_keyword!(tag("let"), KeyWord::Let),
+        parse_keyword!(tag("module"), KeyWord::Module),
+        parse_keyword!(tag("derive"), KeyWord::Derive),
+    ))(i)
+}
+
+fn parse_builtin_keyword2<'a>(i: &'a str) -> IResult<&'a str, Lexer, (&'a str, ErrorKind)> {
+    alt((
         map(preceded(space0, terminated(tag("do"), newline)), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::Do))
         }),
         map(preceded(space0, terminated(tag("end"), newline)), |_| {
             Lexer::BuiltIn(BuiltIn::KeyWord(KeyWord::End))
         })
-
     ))(i)
 }
 

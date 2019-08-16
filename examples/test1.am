@@ -1,40 +1,43 @@
-// This is a testing file
+module my_test do
+  // This is a testing file
 
-public struct Animal do
-  public name as String
-  public optional sound as String
-  public age as Int32
-end
-
-struct Cat inherits Animal do
-  playful as Boolean
-end
-
-implements Cat do
-  public function full_name(borrow self, last_name as String) as String do
-    format!("{} {}", self.name, last_name)
+  derive(Serialize, Deserialize)
+  public struct Animal do
+    public name as String
+    public optional sound as String
+    public age as Int32
   end
+
+  struct Cat inherits Animal do
+    playful as Boolean
+  end
+
+  implements Cat do
+    public function full_name(borrow self, last_name as String) as String do
+      format!("{} {}", self.name, last_name)
+    end
+  end
+
+  let cat_1 = Cat(name: "Fl%ur", age: 1, playful: false)
+  let cat_2 = Cat(name: "Fofo", age: 2, playful: true)
+
+  if cat_1.name equal "Flur" then do
+    println!("my name is Flur")
+  else do
+    println!("my name is not Flur")
+  end
+
+  if cat_2.full_name not equal "Tom" then do
+    println!("my name is not Tom")
+  end
+
+  if (4 + 5 equal 9) and (7 + 8 not equal 20) then do
+    println!("This is printed")
+  end
+
+  println!("My full name is {}", cat.full_name("Doe"))
+    
+  let my_array = Array(1, 2, 3, 4)
+  let my_tuple = Tuple(1, 2)
+  let my_hash_map = HashMap(uno: 1, dos: 2)
 end
-
-let cat_1 = Cat(name: "Fl%ur", age: 1, playful: false)
-let cat_2 = Cat(name: "Fofo", age: 2, playful: true)
-
-if cat_1.name equal "Flur" then do
-  println!("my name is Flur")
-else do
-  println!("my name is not Flur")
-end
-
-if cat_2.full_name not equal "Tom" then do
-  println!("my name is not Tom")
-end
-
-if (4 + 5 equal 9) and (7 + 8 not equal 20) then do
-  println!("This is printed")
-end
-
-println!("My full name is {}", cat.full_name("Doe"))
-  
-let my_array = Array(1, 2, 3, 4)
-let my_tuple = Tuple(1, 2)
-let my_hash_map = HashMap(uno: 1, dos: 2)
