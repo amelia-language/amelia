@@ -1,14 +1,24 @@
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Keyword {
-    Module,
     If,
     Then,
     Else,
-    Public,
+    For,
     Do,
     End,
-    As,
+    Public,
     Struct,
-    Implement,
+    Implements,
     Inherits,
+    As,
+    Equal,
+    Function,
+    Mutable,
+    Borrow,
+    Own,
+    In,
+    Optional,
+    Let,
+    Module,
+    Derive
 }

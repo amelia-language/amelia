@@ -44,4 +44,5 @@ module my_test do
   let my_array = Array(1, 2, 3, 4)
   let my_tuple = Tuple(1, 2)
   let my_hash_map = HashMap(uno: 1, dos: 2)
+  let my_vector = Vec(1, 2, 3, 4)
 end
