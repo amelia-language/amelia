@@ -4,6 +4,5 @@ version = "0.1.0"
 authors = ["werner <werner_a_e@yahoo.es>"]
 edition = "2018"
 
-[dependencies.nom]
-version = "^5"
-features = ["regexp"]
+[dependencies]
+regex = "1"
