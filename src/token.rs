@@ -1,10 +1,12 @@
 use crate::keyword;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Span {
     line: i32,
     col: i32
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Token {
     pub kind: TokenKind,
     pub span: Span,
@@ -91,7 +93,7 @@ pub enum LiteralKind {
 }
 
 impl Token {
-    fn new(kind: TokenKind, line: i32, col: i32) -> Token {
+    pub fn new(kind: TokenKind, line: i32, col: i32) -> Token {
         Token { kind, span: Span { line, col } }
     }
 }
