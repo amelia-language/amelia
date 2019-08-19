@@ -1,24 +1,22 @@
 use crate::keyword;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Span {
-    line: i32,
-    col: i32
+    line: i32
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Token {
     pub kind: TokenKind,
     pub span: Span,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum TokenKind {
     LineComment,
     BlockComment { terminated: bool },
     Whitespace,
-    Ident,
-    RawIdent,
+    Identifier,
     Literal,
     Lifetime,
     Semi,
@@ -93,7 +91,7 @@ pub enum LiteralKind {
 }
 
 impl Token {
-    pub fn new(kind: TokenKind, line: i32, col: i32) -> Token {
-        Token { kind, span: Span { line, col } }
+    pub fn new(kind: TokenKind, line: i32) -> Token {
+        Token { kind, span: Span { line } }
     }
 }
