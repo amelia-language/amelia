@@ -10,6 +10,7 @@ use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
 use std::str;
+use std::rc::Rc;
 
 mod keyword;
 mod token;
@@ -17,32 +18,66 @@ mod token;
 use keyword::Keyword;
 use token::{Token, TokenKind};
 
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Node {
+    token: Token,
+    children: Vec<Node>,
+    data: Option<String>,
+}
+
 #[test]
 fn test() {
     let file_handler =
         File::open("examples/test1.am").expect("Something went wrong reading the syntax file");
 
     let file = BufReader::new(&file_handler);
+    let mut tree = 
+        Node 
+            {
+                token: Token::new(TokenKind::Root, 0), 
+                children: vec![], 
+                data: None 
+            };
     for (num, line) in file.lines().enumerate() {
         let contents = line.expect(&format!("Something wrong reading line: {}", num));
-        recursive_parse(&contents, num as i32 + 1);
+        recursive_parse(&contents, &mut tree, num as i32 + 1);
     }
+    dbg!(tree);
     assert_eq!(1 + 1, 5);
 }
 
-fn recursive_parse<'a>(syntax: &'a str, line_number: i32) -> Result<bool, String> {
-    let mut result = parse_to_token(syntax, line_number);
-    if result.is_none() {
-        result = parse_identifier(syntax, line_number);
-    }
+fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) -> 
+    Result<bool, String> 
+{
+        let mut result = parse_to_token(syntax, line_number);
+        if result.is_none() {
+            result = parse_identifier(syntax, line_number);
+        }
 
-    if let Some(result_parsed) = result {
-        recursive_parse((result_parsed.1).1, line_number);
-    } else {
-        return Err(format!("pattern not recognize {}", syntax))
-    }
+        if result.is_none() {
+            result = parse_comment(syntax, line_number);
+        }
+
+        if let Some(result_parsed) = result {
+            tree.children.push(Node {
+                token: result_parsed.0,
+                children: vec![],
+                data: Some((result_parsed.1).0.to_string())
+            });
+            recursive_parse((result_parsed.1).1, tree, line_number);
+        } else {
+            return Err(format!("pattern not recognize {}", syntax))
+        }
 
     Ok(true)
+}
+
+fn parse_comment<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    let full_pattern = format!("^//.*$");
+    parse(full_pattern, syntax)
+        .map(|pattern| {
+            (Token::new(TokenKind::LineComment, line_number), (pattern.0, pattern.1))
+        })
 }
 
 fn parse_identifier<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {

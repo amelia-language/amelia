@@ -13,6 +13,7 @@ pub struct Token {
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum TokenKind {
+    Root,
     LineComment,
     BlockComment { terminated: bool },
     Whitespace,
