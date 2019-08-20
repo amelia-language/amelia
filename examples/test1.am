@@ -46,7 +46,7 @@ module my_test do
     println!(format!("my name is not Flur is {}", cat_1.show_name()))
   end
 
-  if cat_2.full_name not equal "Tom" then do
+  if cat_2.full_name(last_name: "Marshal") not equal "Tom" then do
     println!("my name is not Tom")
   end
 
@@ -60,4 +60,18 @@ module my_test do
   let my_tuple = (1, 2)
   let my_hash_map = {uno: 1, dos: 2}
   let my_vector = vec![1, 2, 3, 4]
+
+  enum States do
+    Approved
+    Cancelled
+    Disable
+    Rejected
+  end
+
+  let state = States::Approved
+
+  match state do
+    Approved => "Bill Approved"
+    Rejected => "Bill Rejected"
+  end
 end

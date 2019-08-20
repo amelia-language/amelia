@@ -21,5 +21,9 @@ pub enum Keyword {
     Optional,
     Let,
     Module,
-    Derive
+    Derive,
+    Match,
+    Enum,
+    Use,
+    ExternCrate
 }

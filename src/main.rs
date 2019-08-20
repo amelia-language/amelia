@@ -59,7 +59,6 @@ fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
             result = parse_block_comment(syntax, line_number);
             if let Some(result_parsed) = &result {
                 let newlines = match_newlines((result_parsed.1).0);
-                dbg!(&newlines);
                 new_line_number = new_line_number + newlines.len() as i32;
             }
         }
@@ -72,8 +71,6 @@ fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
             result = parse_newline(syntax, line_number);
             new_line_number = new_line_number + 1;
         }
-
-        dbg!(&result);
 
         if let Some(result_parsed) = result {
             tree.children.push(Node {
@@ -151,6 +148,22 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
         (
             "trait",
             Token::new(TokenKind::keyword(Keyword::Trait), line_number),
+        ),
+        (
+            "match",
+            Token::new(TokenKind::keyword(Keyword::Match), line_number),
+        ),
+        (
+            "enum",
+            Token::new(TokenKind::keyword(Keyword::Enum), line_number),
+        ),
+        (
+            "use",
+            Token::new(TokenKind::keyword(Keyword::Use), line_number),
+        ),
+        (
+            "extern crate",
+            Token::new(TokenKind::keyword(Keyword::ExternCrate), line_number),
         ),
         (
             "struct",
