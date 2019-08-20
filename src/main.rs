@@ -107,7 +107,7 @@ fn match_newlines<'a>(syntax: &'a str) -> Vec<Captures> {
 }
 
 fn parse_identifier<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
-    let full_pattern = format!("^([a-z_]+)(?s)(\\s.*)$");
+    let full_pattern = format!("^([A-Za-z_0-9]+)(?s)(\\s|\\(|.*)$");
     parse(full_pattern, syntax)
         .map(|pattern| {
             (Token::new(TokenKind::Identifier, line_number), (pattern.0, pattern.1))
