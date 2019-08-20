@@ -27,10 +27,9 @@ pub struct Node {
 
 #[test]
 fn test() {
-    let file_handler =
-        File::open("examples/test1.am").expect("Something went wrong reading the syntax file");
+    let contents = fs::read_to_string("examples/test1.am")
+        .expect("Something went wrong reading the syntax file");
 
-    let file = BufReader::new(&file_handler);
     let mut tree = 
         Node 
             {
@@ -38,10 +37,7 @@ fn test() {
                 children: vec![], 
                 data: None 
             };
-    for (num, line) in file.lines().enumerate() {
-        let contents = line.expect(&format!("Something wrong reading line: {}", num));
-        recursive_parse(&contents, &mut tree, num as i32 + 1);
-    }
+    recursive_parse(&contents, &mut tree, 1);
     dbg!(tree);
     assert_eq!(1 + 1, 5);
 }
@@ -57,6 +53,8 @@ fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
         if result.is_none() {
             result = parse_comment(syntax, line_number);
         }
+
+        dbg!(&result);
 
         if let Some(result_parsed) = result {
             tree.children.push(Node {
