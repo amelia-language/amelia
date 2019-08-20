@@ -157,6 +157,14 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
             Token::new(TokenKind::keyword(Keyword::Struct), line_number),
         ),
         (
+            "public",
+            Token::new(TokenKind::keyword(Keyword::Public), line_number),
+        ),
+        (
+            "as",
+            Token::new(TokenKind::keyword(Keyword::As), line_number),
+        ),
+        (
             "implements",
             Token::new(TokenKind::keyword(Keyword::Implements), line_number),
         ),
@@ -179,6 +187,42 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
         (
             "for",
             Token::new(TokenKind::keyword(Keyword::For), line_number),
+        ),
+        (
+            "in",
+            Token::new(TokenKind::keyword(Keyword::In), line_number),
+        ),
+        (
+            "let",
+            Token::new(TokenKind::keyword(Keyword::Let), line_number),
+        ),
+        (
+            "derive",
+            Token::new(TokenKind::keyword(Keyword::Derive), line_number),
+        ),
+        (
+            "optional",
+            Token::new(TokenKind::keyword(Keyword::Optional), line_number),
+        ),
+        (
+            "equal",
+            Token::new(TokenKind::keyword(Keyword::Equal), line_number),
+        ),
+        (
+            "function",
+            Token::new(TokenKind::keyword(Keyword::Function), line_number),
+        ),
+        (
+            "mutable",
+            Token::new(TokenKind::keyword(Keyword::Mutable), line_number),
+        ),
+        (
+            "borrow",
+            Token::new(TokenKind::keyword(Keyword::Borrow), line_number),
+        ),
+        (
+            "own",
+            Token::new(TokenKind::keyword(Keyword::Own), line_number),
         ),
     ]
     .into_iter()
