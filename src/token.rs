@@ -15,7 +15,7 @@ pub struct Token {
 pub enum TokenKind {
     Root,
     LineComment,
-    BlockComment { terminated: bool },
+    BlockComment,
     Whitespace,
     Identifier,
     NewLine,

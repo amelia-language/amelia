@@ -56,6 +56,10 @@ fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
         }
 
         if result.is_none() {
+            result = parse_block_comment(syntax, line_number);
+        }
+
+        if result.is_none() {
             result = parse_whitespace(syntax, line_number);
         }
 
@@ -85,6 +89,14 @@ fn parse_line_comment<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (
     parse(full_pattern, syntax)
         .map(|pattern| {
             (Token::new(TokenKind::LineComment, line_number), (pattern.0, pattern.1))
+        })
+}
+
+fn parse_block_comment<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    let full_pattern = format!("^(?s)(/\\*.*\\*/)(.*)$");
+    parse(full_pattern, syntax)
+        .map(|pattern| {
+            (Token::new(TokenKind::BlockComment, line_number), (pattern.0, pattern.1))
         })
 }
 
