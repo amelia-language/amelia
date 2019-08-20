@@ -4,7 +4,7 @@ extern crate regex;
 extern crate lazy_static;
 
 use regex::Error as RegexError;
-use regex::Regex;
+use regex::{ Regex, Captures };
 use std::fs;
 use std::fs::File;
 use std::io::BufRead;
@@ -57,6 +57,11 @@ fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
 
         if result.is_none() {
             result = parse_block_comment(syntax, line_number);
+            if let Some(result_parsed) = &result {
+                let newlines = match_newlines((result_parsed.1).0);
+                dbg!(&newlines);
+                new_line_number = new_line_number + newlines.len() as i32;
+            }
         }
 
         if result.is_none() {
@@ -98,6 +103,10 @@ fn parse_block_comment<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, 
         .map(|pattern| {
             (Token::new(TokenKind::BlockComment, line_number), (pattern.0, pattern.1))
         })
+}
+
+fn match_newlines<'a>(syntax: &'a str) -> Vec<Captures> {
+    Regex::new(r"\n").unwrap().captures_iter(syntax).collect()
 }
 
 fn parse_identifier<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
