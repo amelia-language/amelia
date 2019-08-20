@@ -8,6 +8,7 @@ pub enum Keyword {
     End,
     Public,
     Struct,
+    Trait,
     Implements,
     Inherits,
     As,

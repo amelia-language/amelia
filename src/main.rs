@@ -134,7 +134,43 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
         (
             "do",
             Token::new(TokenKind::keyword(Keyword::Do), line_number),
-        )
+        ),
+        (
+            "end",
+            Token::new(TokenKind::keyword(Keyword::End), line_number),
+        ),
+        (
+            "trait",
+            Token::new(TokenKind::keyword(Keyword::Trait), line_number),
+        ),
+        (
+            "struct",
+            Token::new(TokenKind::keyword(Keyword::Struct), line_number),
+        ),
+        (
+            "implements",
+            Token::new(TokenKind::keyword(Keyword::Implements), line_number),
+        ),
+        (
+            "inherits",
+            Token::new(TokenKind::keyword(Keyword::Inherits), line_number),
+        ),
+        (
+            "if",
+            Token::new(TokenKind::keyword(Keyword::If), line_number),
+        ),
+        (
+            "then",
+            Token::new(TokenKind::keyword(Keyword::Then), line_number),
+        ),
+        (
+            "else",
+            Token::new(TokenKind::keyword(Keyword::Else), line_number),
+        ),
+        (
+            "for",
+            Token::new(TokenKind::keyword(Keyword::For), line_number),
+        ),
     ]
     .into_iter()
     {
