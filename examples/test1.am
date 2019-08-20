@@ -1,5 +1,17 @@
 module my_test do
   // This is a testing file
+  /* This is a 
+  * block comment
+  *
+  */
+
+  trait Naming do
+    public name as String
+
+    public function show_name(self) do
+      self.name
+    end
+  end
 
   derive(Serialize, Deserialize)
   public struct Animal do
@@ -12,6 +24,9 @@ module my_test do
     playful as Boolean
   end
 
+  implements Naming for Cat do
+  end
+
   implements Cat do
     public function full_name(borrow self, last_name as String) as Result<String, String> do
       if last_name then do
@@ -22,13 +37,13 @@ module my_test do
     end
   end
 
-  let cat_1 = Cat(name: "Fl%ur", age: 1, playful: false)
-  let cat_2 = Cat(name: "Fofo", age: 2, playful: true)
+  let cat_1 = Cat::new(name: "Fl%ur", age: 1, playful: false)
+  let cat_2 = Cat::new(name: "Fofo", age: 2, playful: true)
 
   if cat_1.name equal "Fl%ur" then do
     println!("my name is Flur")
   else do
-    println!("my name is not Flur")
+    println!(format!("my name is not Flur is {}", cat_1.show_name()))
   end
 
   if cat_2.full_name not equal "Tom" then do
@@ -41,8 +56,8 @@ module my_test do
 
   println!("My full name is {}", cat.full_name("Doe"))
     
-  let my_array = Array(1, 2, 3, 4)
-  let my_tuple = Tuple(1, 2)
-  let my_hash_map = HashMap(uno: 1, dos: 2)
-  let my_vector = Vec(1, 2, 3, 4)
+  let my_array = [1, 2, 3, 4]
+  let my_tuple = (1, 2)
+  let my_hash_map = {uno: 1, dos: 2}
+  let my_vector = vec![1, 2, 3, 4]
 end
