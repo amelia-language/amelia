@@ -18,6 +18,7 @@ pub enum TokenKind {
     BlockComment { terminated: bool },
     Whitespace,
     Identifier,
+    NewLine,
     Literal,
     Lifetime,
     Semi,

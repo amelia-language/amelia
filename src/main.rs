@@ -46,16 +46,22 @@ fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
     Result<bool, String> 
 {
         let mut result = parse_to_token(syntax, line_number);
+        let mut new_line_number = line_number;
         if result.is_none() {
             result = parse_identifier(syntax, line_number);
         }
 
         if result.is_none() {
-            result = parse_comment(syntax, line_number);
+            result = parse_line_comment(syntax, line_number);
         }
 
         if result.is_none() {
             result = parse_whitespace(syntax, line_number);
+        }
+
+        if result.is_none() {
+            result = parse_newline(syntax, line_number);
+            new_line_number = new_line_number + 1;
         }
 
         dbg!(&result);
@@ -66,7 +72,7 @@ fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
                 children: vec![],
                 data: Some((result_parsed.1).0.to_string())
             });
-            recursive_parse((result_parsed.1).1, tree, line_number);
+            recursive_parse((result_parsed.1).1, tree, new_line_number);
         } else {
             return Err(format!("pattern not recognize {}", syntax))
         }
@@ -74,8 +80,8 @@ fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
     Ok(true)
 }
 
-fn parse_comment<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
-    let full_pattern = format!("^//.*$");
+fn parse_line_comment<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    let full_pattern = format!("^(//.*)(?s)(.*)$");
     parse(full_pattern, syntax)
         .map(|pattern| {
             (Token::new(TokenKind::LineComment, line_number), (pattern.0, pattern.1))
@@ -95,6 +101,14 @@ fn parse_whitespace<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'
     parse(full_pattern, syntax)
         .map(|pattern| {
             (Token::new(TokenKind::Whitespace, line_number), (pattern.0, pattern.1))
+        })
+}
+
+fn parse_newline<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    let full_pattern = format!("^(\\n)(?s)(.*)$");
+    parse(full_pattern, syntax)
+        .map(|pattern| {
+            (Token::new(TokenKind::NewLine, line_number), (pattern.0, pattern.1))
         })
 }
 
