@@ -54,6 +54,10 @@ fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
             result = parse_comment(syntax, line_number);
         }
 
+        if result.is_none() {
+            result = parse_whitespace(syntax, line_number);
+        }
+
         dbg!(&result);
 
         if let Some(result_parsed) = result {
@@ -79,10 +83,18 @@ fn parse_comment<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a s
 }
 
 fn parse_identifier<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
-    let full_pattern = format!("^([a-z_]+)(\\s.*)$");
+    let full_pattern = format!("^([a-z_]+)(?s)(\\s.*)$");
     parse(full_pattern, syntax)
         .map(|pattern| {
             (Token::new(TokenKind::Identifier, line_number), (pattern.0, pattern.1))
+        })
+}
+
+fn parse_whitespace<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    let full_pattern = format!("^([[:blank:]])(?s)(.*)$");
+    parse(full_pattern, syntax)
+        .map(|pattern| {
+            (Token::new(TokenKind::Whitespace, line_number), (pattern.0, pattern.1))
         })
 }
 
@@ -96,13 +108,12 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
         (
             "do",
             Token::new(TokenKind::keyword(Keyword::Do), line_number),
-        ),
-        ("\\s", Token::new(TokenKind::Whitespace, line_number)),
+        )
     ]
     .into_iter()
     {
         let (pattern, token) = parsing;
-        let full_pattern = format!("^({})(.*)$", pattern);
+        let full_pattern = format!("^({})(?s)(.*)$", pattern);
 
         if let Some(parsed_result) = parse(full_pattern, syntax) {
             return Some((token.clone(), parsed_result));
