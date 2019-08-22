@@ -69,6 +69,10 @@ fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
         }
 
         if result.is_none() {
+            result = parse_comma(syntax, line_number);
+        }
+
+        if result.is_none() {
             result = parse_block_comment(syntax, line_number);
             if let Some(result_parsed) = &result {
                 let newlines = match_newlines((result_parsed.1).0);
@@ -134,6 +138,13 @@ fn parse_dot<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, 
         static ref RE: Regex = Regex::new("^(\\.)(?s)(.*)$").unwrap();
     }
     parse_capture!(syntax, RE, Dot, line_number, false)
+}
+
+fn parse_comma<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new("^(,)(?s)(.*)$").unwrap();
+    }
+    parse_capture!(syntax, RE, Comma, line_number, false)
 }
 
 fn parse_line_comment<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {

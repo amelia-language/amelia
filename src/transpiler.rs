@@ -22,6 +22,7 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::Dot => ".".to_string(),
                     TokenKind::keyword(Keyword::Function) => "fn".to_string(),
                     TokenKind::Whitespace => " ".to_string(),
+                    TokenKind::Comma => ",".to_string(),
                     TokenKind::Identifier => {
                         let identifier = str::replace(node_data, "\n", ";");
                         identifier
