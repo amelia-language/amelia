@@ -44,6 +44,11 @@ fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
 {
         let mut result = parse_to_token(syntax, line_number);
         let mut new_line_number = line_number;
+
+        if result.is_none() {
+            result = parse_derive(syntax, line_number);
+        }
+
         if result.is_none() {
             result = parse_identifier_end(syntax, line_number);
         }
@@ -196,6 +201,26 @@ fn parse_newline<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a s
     parse_capture!(syntax, RE, NewLine, line_number, false)
 }
 
+fn parse_derive<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new("^(derive\\(.*\\))(?s)(.*)$").unwrap();
+    }
+
+    if let Some(caps) = RE.captures(syntax) {
+        Some(
+                (
+                    Token::new(TokenKind::keyword(Keyword::Derive), line_number, false),
+                    (
+                        caps.get(1).map_or("", |m| m.as_str()),
+                        caps.get(2).map_or("", |m| m.as_str()),
+                    )
+                )
+            )
+    } else {
+        None
+    }
+}
+
 fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
 
     for parsing in [
@@ -274,10 +299,6 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
         (
             "let",
             Token::new(TokenKind::keyword(Keyword::Let), line_number, false),
-        ),
-        (
-            "derive",
-            Token::new(TokenKind::keyword(Keyword::Derive), line_number, false),
         ),
         (
             "optional",
