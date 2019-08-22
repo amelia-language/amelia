@@ -59,7 +59,7 @@ module my_test do
   let my_array = [1, 2, 3, 4]
   let my_tuple = (1, 2)
   let my_hash_map = {uno: 1, dos: 2}
-  let my_vector = vec![1, 2, 3, 4]
+  let my_vector = <1, 2, 3, 4>
 
   enum States do
     Approved
@@ -74,4 +74,16 @@ module my_test do
     Approved => "Bill Approved"
     Rejected => "Bill Rejected"
   end
+
+  macro_rules! foo do
+    ($arg as ident) => do
+      println!("{}", $arg)
+    end
+  end
+
+  let result_number = Ok(87)
+
+  let borrowed_number = borrow result_number.unwrap()
+
+  let another_borrowed_number = unwrap |> result_number |> borrow
 end

@@ -14,16 +14,13 @@ use std::rc::Rc;
 
 mod keyword;
 mod token;
+mod transpiler;
+mod ast;
 
 use keyword::Keyword;
 use token::{Token, TokenKind};
-
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Node {
-    token: Token,
-    children: Vec<Node>,
-    data: Option<String>,
-}
+use ast::Node;
+use transpiler::transpile;
 
 #[test]
 fn test() {
