@@ -6,12 +6,24 @@ use crate::keyword::Keyword;
 pub fn transpile(ast: Node) -> String {
     let mut syntax = vec![];
     for node in ast.children {
-        syntax.push(
-            match node.token.kind {
-                TokenKind::keyword(Keyword::Module) => "pub",
-                _ => "other"
-            }
-        );
+        if let Some(node_data) = &node.data {
+            syntax.push(
+                match node.token.kind {
+                    TokenKind::keyword(Keyword::Module) => "mod",
+                    TokenKind::keyword(Keyword::Public) => "pub",
+                    TokenKind::keyword(Keyword::Trait) => "trait",
+                    TokenKind::keyword(Keyword::As) => ":",
+                    TokenKind::keyword(Keyword::Do) => "{",
+                    TokenKind::keyword(Keyword::End) => "}",
+                    TokenKind::NewLine => ";",
+                    TokenKind::keyword(Keyword::Function) => "fn",
+                    TokenKind::Whitespace => " ",
+                    TokenKind::Identifier => &node_data,
+                    _ => ""
+                }.to_string()
+            );
+        }
+        syntax.push(transpile(node));
     }
     syntax.join("")
 }
