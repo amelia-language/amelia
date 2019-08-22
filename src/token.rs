@@ -9,6 +9,7 @@ pub struct Span {
 pub struct Token {
     pub kind: TokenKind,
     pub span: Span,
+    pub eos: bool
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -18,6 +19,7 @@ pub enum TokenKind {
     BlockComment,
     Whitespace,
     Identifier,
+    IdentifierEnd,
     NewLine,
     Literal,
     Lifetime,
@@ -93,7 +95,7 @@ pub enum LiteralKind {
 }
 
 impl Token {
-    pub fn new(kind: TokenKind, line: i32) -> Token {
-        Token { kind, span: Span { line } }
+    pub fn new(kind: TokenKind, line: i32, eos: bool) -> Token {
+        Token { kind, span: Span { line }, eos }
     }
 }

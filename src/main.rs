@@ -30,7 +30,7 @@ fn test() {
     let mut tree = 
         Node 
             {
-                token: Token::new(TokenKind::Root, 0), 
+                token: Token::new(TokenKind::Root, 0, false), 
                 children: vec![], 
                 data: None 
             };
@@ -44,6 +44,10 @@ fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
 {
         let mut result = parse_to_token(syntax, line_number);
         let mut new_line_number = line_number;
+        if result.is_none() {
+            result = parse_identifier_end(syntax, line_number);
+        }
+
         if result.is_none() {
             result = parse_identifier(syntax, line_number);
         }
@@ -96,10 +100,10 @@ fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
 }
 
 macro_rules! parse_capture {
-    ($syntax:expr, $RE:tt, $token_kind:tt, $line_number:expr) => {
+    ($syntax:expr, $RE:tt, $token_kind:tt, $line_number:expr, $eos:tt) => {
         if let Some(caps) = $RE.captures($syntax) {
             Some((
-                Token::new(TokenKind::$token_kind, $line_number),
+                Token::new(TokenKind::$token_kind, $line_number, $eos),
                 (
                     caps.get(1).map_or("", |m| m.as_str()),
                     caps.get(2).map_or("", |m| m.as_str()),
@@ -115,35 +119,35 @@ fn parse_open_parens<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&
     lazy_static! {
         static ref RE: Regex = Regex::new("^(\\()(?s)(.*)$").unwrap();
     }
-    parse_capture!(syntax, RE, OpenParen, line_number)
+    parse_capture!(syntax, RE, OpenParen, line_number, false)
 }
 
 fn parse_close_parens<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
         static ref RE: Regex = Regex::new("^(\\))(?s)(.*)$").unwrap();
     }
-    parse_capture!(syntax, RE, CloseParen, line_number)
+    parse_capture!(syntax, RE, CloseParen, line_number, false)
 }
 
 fn parse_dot<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
         static ref RE: Regex = Regex::new("^(\\.)(?s)(.*)$").unwrap();
     }
-    parse_capture!(syntax, RE, Dot, line_number)
+    parse_capture!(syntax, RE, Dot, line_number, false)
 }
 
 fn parse_line_comment<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
         static ref RE: Regex = Regex::new("^(//.*)(?s)(.*)$").unwrap();
     }
-    parse_capture!(syntax, RE, LineComment, line_number)
+    parse_capture!(syntax, RE, LineComment, line_number, false)
 }
 
 fn parse_block_comment<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
         static ref RE: Regex = Regex::new("^(?s)(/\\*.*\\*/)(.*)$").unwrap();
     }
-    parse_capture!(syntax, RE, BlockComment, line_number)
+    parse_capture!(syntax, RE, BlockComment, line_number, false)
 }
 
 fn match_newlines<'a>(syntax: &'a str) -> Vec<Captures> {
@@ -157,21 +161,28 @@ fn parse_identifier<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'
     lazy_static! {
         static ref RE: Regex = Regex::new("^([A-Za-z_0-9]+)(?s)(\\s|\\(|.*)$").unwrap();
     }
-    parse_capture!(syntax, RE, Identifier, line_number)
+    parse_capture!(syntax, RE, Identifier, line_number, false)
+}
+
+fn parse_identifier_end<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new("^([A-Za-z_0-9]+\\n)(?s)(\\s|\\(|.*)$").unwrap();
+    }
+    parse_capture!(syntax, RE, Identifier, line_number, true)
 }
 
 fn parse_whitespace<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
         static ref RE: Regex = Regex::new("^([[:blank:]])(?s)(.*)$").unwrap();
     }
-    parse_capture!(syntax, RE, Whitespace, line_number)
+    parse_capture!(syntax, RE, Whitespace, line_number, false)
 }
 
 fn parse_newline<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
         static ref RE: Regex = Regex::new("^(\\n)(?s)(.*)$").unwrap();
     }
-    parse_capture!(syntax, RE, NewLine, line_number)
+    parse_capture!(syntax, RE, NewLine, line_number, false)
 }
 
 fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
@@ -179,111 +190,111 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
     for parsing in [
         (
             "module",
-            Token::new(TokenKind::keyword(Keyword::Module), line_number),
+            Token::new(TokenKind::keyword(Keyword::Module), line_number, false),
         ),
         (
             "do",
-            Token::new(TokenKind::keyword(Keyword::Do), line_number),
+            Token::new(TokenKind::keyword(Keyword::Do), line_number, false),
         ),
         (
             "end",
-            Token::new(TokenKind::keyword(Keyword::End), line_number),
+            Token::new(TokenKind::keyword(Keyword::End), line_number, false),
         ),
         (
             "trait",
-            Token::new(TokenKind::keyword(Keyword::Trait), line_number),
+            Token::new(TokenKind::keyword(Keyword::Trait), line_number, false),
         ),
         (
             "match",
-            Token::new(TokenKind::keyword(Keyword::Match), line_number),
+            Token::new(TokenKind::keyword(Keyword::Match), line_number, false),
         ),
         (
             "enum",
-            Token::new(TokenKind::keyword(Keyword::Enum), line_number),
+            Token::new(TokenKind::keyword(Keyword::Enum), line_number, false),
         ),
         (
             "use",
-            Token::new(TokenKind::keyword(Keyword::Use), line_number),
+            Token::new(TokenKind::keyword(Keyword::Use), line_number, false),
         ),
         (
             "extern crate",
-            Token::new(TokenKind::keyword(Keyword::ExternCrate), line_number),
+            Token::new(TokenKind::keyword(Keyword::ExternCrate), line_number, false),
         ),
         (
             "struct",
-            Token::new(TokenKind::keyword(Keyword::Struct), line_number),
+            Token::new(TokenKind::keyword(Keyword::Struct), line_number, false),
         ),
         (
             "public",
-            Token::new(TokenKind::keyword(Keyword::Public), line_number),
+            Token::new(TokenKind::keyword(Keyword::Public), line_number, false),
         ),
         (
             "as",
-            Token::new(TokenKind::keyword(Keyword::As), line_number),
+            Token::new(TokenKind::keyword(Keyword::As), line_number, false),
         ),
         (
             "implements",
-            Token::new(TokenKind::keyword(Keyword::Implements), line_number),
+            Token::new(TokenKind::keyword(Keyword::Implements), line_number, false),
         ),
         (
             "inherits",
-            Token::new(TokenKind::keyword(Keyword::Inherits), line_number),
+            Token::new(TokenKind::keyword(Keyword::Inherits), line_number, false),
         ),
         (
             "if",
-            Token::new(TokenKind::keyword(Keyword::If), line_number),
+            Token::new(TokenKind::keyword(Keyword::If), line_number, false),
         ),
         (
             "then",
-            Token::new(TokenKind::keyword(Keyword::Then), line_number),
+            Token::new(TokenKind::keyword(Keyword::Then), line_number, false),
         ),
         (
             "else",
-            Token::new(TokenKind::keyword(Keyword::Else), line_number),
+            Token::new(TokenKind::keyword(Keyword::Else), line_number, false),
         ),
         (
             "for",
-            Token::new(TokenKind::keyword(Keyword::For), line_number),
+            Token::new(TokenKind::keyword(Keyword::For), line_number, false),
         ),
         (
             "in",
-            Token::new(TokenKind::keyword(Keyword::In), line_number),
+            Token::new(TokenKind::keyword(Keyword::In), line_number, false),
         ),
         (
             "let",
-            Token::new(TokenKind::keyword(Keyword::Let), line_number),
+            Token::new(TokenKind::keyword(Keyword::Let), line_number, false),
         ),
         (
             "derive",
-            Token::new(TokenKind::keyword(Keyword::Derive), line_number),
+            Token::new(TokenKind::keyword(Keyword::Derive), line_number, false),
         ),
         (
             "optional",
-            Token::new(TokenKind::keyword(Keyword::Optional), line_number),
+            Token::new(TokenKind::keyword(Keyword::Optional), line_number, false),
         ),
         (
             "equal",
-            Token::new(TokenKind::keyword(Keyword::Equal), line_number),
+            Token::new(TokenKind::keyword(Keyword::Equal), line_number, false),
         ),
         (
             "function",
-            Token::new(TokenKind::keyword(Keyword::Function), line_number),
+            Token::new(TokenKind::keyword(Keyword::Function), line_number, false),
         ),
         (
             "mutable",
-            Token::new(TokenKind::keyword(Keyword::Mutable), line_number),
+            Token::new(TokenKind::keyword(Keyword::Mutable), line_number, false),
         ),
         (
             "borrow",
-            Token::new(TokenKind::keyword(Keyword::Borrow), line_number),
+            Token::new(TokenKind::keyword(Keyword::Borrow), line_number, false),
         ),
         (
             "own",
-            Token::new(TokenKind::keyword(Keyword::Own), line_number),
+            Token::new(TokenKind::keyword(Keyword::Own), line_number, false),
         ),
         (
             "return",
-            Token::new(TokenKind::keyword(Keyword::Return), line_number),
+            Token::new(TokenKind::keyword(Keyword::Return), line_number, false),
         ),
     ]
     .into_iter()
