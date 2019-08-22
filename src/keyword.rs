@@ -25,5 +25,6 @@ pub enum Keyword {
     Match,
     Enum,
     Use,
-    ExternCrate
+    ExternCrate,
+    Return
 }

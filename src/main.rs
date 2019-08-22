@@ -53,6 +53,18 @@ fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
         }
 
         if result.is_none() {
+            result = parse_open_parens(syntax, line_number);
+        }
+
+        if result.is_none() {
+            result = parse_close_parens(syntax, line_number);
+        }
+
+        if result.is_none() {
+            result = parse_dot(syntax, line_number);
+        }
+
+        if result.is_none() {
             result = parse_block_comment(syntax, line_number);
             if let Some(result_parsed) = &result {
                 let newlines = match_newlines((result_parsed.1).0);
@@ -97,6 +109,27 @@ macro_rules! parse_capture {
             None
         }
     }
+}
+
+fn parse_open_parens<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new("^(\\()(?s)(.*)$").unwrap();
+    }
+    parse_capture!(syntax, RE, OpenParen, line_number)
+}
+
+fn parse_close_parens<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new("^(\\))(?s)(.*)$").unwrap();
+    }
+    parse_capture!(syntax, RE, CloseParen, line_number)
+}
+
+fn parse_dot<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new("^(\\.)(?s)(.*)$").unwrap();
+    }
+    parse_capture!(syntax, RE, Dot, line_number)
 }
 
 fn parse_line_comment<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
@@ -247,6 +280,10 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
         (
             "own",
             Token::new(TokenKind::keyword(Keyword::Own), line_number),
+        ),
+        (
+            "return",
+            Token::new(TokenKind::keyword(Keyword::Return), line_number),
         ),
     ]
     .into_iter()
