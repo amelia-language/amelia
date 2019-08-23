@@ -18,7 +18,6 @@ pub enum Keyword {
     Borrow,
     Own,
     In,
-    Optional,
     Let,
     Module,
     Derive,
@@ -26,5 +25,11 @@ pub enum Keyword {
     Enum,
     Use,
     ExternCrate,
-    Return
+    Return,
+    PublicStruct,
+    PublicTrait,
+    PublicUse,
+    PublicModule,
+    PublicFunction,
+    PublicEnum
 }

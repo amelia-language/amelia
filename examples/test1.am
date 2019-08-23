@@ -16,7 +16,7 @@ module my_test do
   derive(Serialize, Deserialize)
   public struct Animal do
     public name as String
-    public optional sound as String
+    public sound as Option<String>
     public age as Int32
   end
 
@@ -59,7 +59,7 @@ module my_test do
   let my_array = [1, 2, 3, 4]
   let my_tuple = (1, 2)
   let my_hash_map = {uno: 1, dos: 2}
-  let my_vector = <1, 2, 3, 4>
+  let my_vector = vec![1, 2, 3, 4]
 
   enum States do
     Approved

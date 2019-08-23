@@ -21,7 +21,7 @@ pub enum TokenKind {
     Identifier,
     IdentifierEnd,
     NewLine,
-    Literal,
+    Literal(LiteralKind),
     Lifetime,
     Semi,
     Comma,
@@ -76,6 +76,7 @@ pub enum TokenKind {
     PercentEq,
     Percent,
     Keyword(keyword::Keyword),
+    TypeWithGeneric,
     Unknown,
 }
 

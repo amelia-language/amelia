@@ -18,7 +18,7 @@ pub fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) -
         }
 
         if result.is_none() {
-            result = parse_identifier_end(syntax, line_number);
+            result = parse_type_with_generics(syntax, line_number);
         }
 
         if result.is_none() {
@@ -149,18 +149,10 @@ fn match_newlines<'a>(syntax: &'a str) -> Vec<Captures> {
 
 fn parse_identifier<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
-        static ref RE: Regex = Regex::new("^([A-Za-z_0-9]+)(?s)(\\s|\\(|.*)$").unwrap();
+        static ref RE: Regex = Regex::new("^([A-Za-z_0-9]+\\n?)(?s)(\\s|\\(|.*)$").unwrap();
     }
     let token_kind = TokenKind::Identifier;
     parse_capture!(syntax, RE, token_kind, line_number, false)
-}
-
-fn parse_identifier_end<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
-    lazy_static! {
-        static ref RE: Regex = Regex::new("^([A-Za-z_0-9]+\\n)(?s)(\\s|\\(|.*)$").unwrap();
-    }
-    let token_kind = TokenKind::Identifier;
-    parse_capture!(syntax, RE, token_kind, line_number, true)
 }
 
 fn parse_whitespace<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
@@ -184,6 +176,14 @@ fn parse_as<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &
         static ref RE: Regex = Regex::new("^(\\sas)(?s)(.*)$").unwrap();
     }
     let token_kind = TokenKind::Keyword(Keyword::As);
+    parse_capture!(syntax, RE, token_kind, line_number, false)
+}
+
+fn parse_type_with_generics<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new("^([A-Za-z0-9]+<.*>\\n?)(?s)(.*)$").unwrap();
+    }
+    let token_kind = TokenKind::TypeWithGeneric;
     parse_capture!(syntax, RE, token_kind, line_number, false)
 }
 
@@ -247,6 +247,30 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
             Token::new(TokenKind::Keyword(Keyword::Struct), line_number, false),
         ),
         (
+            "public struct",
+            Token::new(TokenKind::Keyword(Keyword::PublicStruct), line_number, false),
+        ),
+        (
+            "public trait",
+            Token::new(TokenKind::Keyword(Keyword::PublicTrait), line_number, false),
+        ),
+        (
+            "public use",
+            Token::new(TokenKind::Keyword(Keyword::PublicUse), line_number, false),
+        ),
+        (
+            "public module",
+            Token::new(TokenKind::Keyword(Keyword::PublicModule), line_number, false),
+        ),
+        (
+            "public function",
+            Token::new(TokenKind::Keyword(Keyword::PublicFunction), line_number, false),
+        ),
+        (
+            "public enum",
+            Token::new(TokenKind::Keyword(Keyword::PublicEnum), line_number, false),
+        ),
+        (
             "public",
             Token::new(TokenKind::Keyword(Keyword::Public), line_number, false),
         ),
@@ -281,10 +305,6 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
         (
             "let",
             Token::new(TokenKind::Keyword(Keyword::Let), line_number, false),
-        ),
-        (
-            "optional",
-            Token::new(TokenKind::Keyword(Keyword::Optional), line_number, false),
         ),
         (
             "equal",

@@ -11,20 +11,22 @@ mod my_test {
   }
 
   #[derive(Serialize, Deserialize)]
-  pub #[derive(Debug, Clone, Default, PartialEq, PartialOrd)]
-struct Animal {
+  #[derive(Debug, Clone, Default, PartialEq)]
+pub struct Animal {
     pub name: String;
-    pub  sound: String;
+    pub sound: Option<String>;
     pub age: Int32;
   }
 
-  #[derive(Debug, Clone, Default, PartialEq, PartialOrd)]
+  #[derive(Debug, Clone, Default, PartialEq)]
 struct Cat  Animal {
     playful: Boolean;
   }
 
-   Naming  Cat {
+  impl Naming for Cat {
   }
 
-   Cat {
-    pub fn full_name( self, last_name: String): Result
+  impl Cat {
+    pub fn full_name( self, last_name: String): Result<String, String> {
+       last_name  {
+         Ok(format
