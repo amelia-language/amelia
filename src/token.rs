@@ -75,7 +75,7 @@ pub enum TokenKind {
     Caret,
     PercentEq,
     Percent,
-    keyword(keyword::Keyword),
+    Keyword(keyword::Keyword),
     Unknown,
 }
 

@@ -5,10 +5,7 @@ extern crate lazy_static;
 
 use std::fs;
 use std::fs::File;
-use std::io::BufRead;
-use std::io::BufReader;
-use std::str;
-use std::rc::Rc;
+use std::io::Write;
 
 mod keyword;
 mod token;
@@ -33,7 +30,8 @@ fn test() {
                 data: None 
             };
     parser::recursive_parse(&contents, &mut tree, 1);
-    dbg!(transpile(tree));
-    assert_eq!(1 + 1, 5);
+    let mut file = File::create("examples/test.rs")
+        .expect("Someting went wrong creating the file");
+    file.write_all(transpile(tree).as_bytes());
 }
 

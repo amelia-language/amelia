@@ -1,4 +1,3 @@
-use regex::Error as RegexError;
 use regex::{ Regex, Captures };
 use crate::keyword::Keyword;
 use crate::token::{Token, TokenKind};
@@ -174,7 +173,7 @@ fn parse_derive<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a st
     if let Some(caps) = RE.captures(syntax) {
         Some(
                 (
-                    Token::new(TokenKind::keyword(Keyword::Derive), line_number, false),
+                    Token::new(TokenKind::Keyword(Keyword::Derive), line_number, false),
                     (
                         caps.get(1).map_or("", |m| m.as_str()),
                         caps.get(2).map_or("", |m| m.as_str()),
@@ -191,107 +190,107 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
     for parsing in [
         (
             "module",
-            Token::new(TokenKind::keyword(Keyword::Module), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Module), line_number, false),
         ),
         (
             "do",
-            Token::new(TokenKind::keyword(Keyword::Do), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Do), line_number, false),
         ),
         (
             "end",
-            Token::new(TokenKind::keyword(Keyword::End), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::End), line_number, false),
         ),
         (
             "trait",
-            Token::new(TokenKind::keyword(Keyword::Trait), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Trait), line_number, false),
         ),
         (
             "match",
-            Token::new(TokenKind::keyword(Keyword::Match), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Match), line_number, false),
         ),
         (
             "enum",
-            Token::new(TokenKind::keyword(Keyword::Enum), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Enum), line_number, false),
         ),
         (
             "use",
-            Token::new(TokenKind::keyword(Keyword::Use), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Use), line_number, false),
         ),
         (
             "extern crate",
-            Token::new(TokenKind::keyword(Keyword::ExternCrate), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::ExternCrate), line_number, false),
         ),
         (
             "struct",
-            Token::new(TokenKind::keyword(Keyword::Struct), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Struct), line_number, false),
         ),
         (
             "public",
-            Token::new(TokenKind::keyword(Keyword::Public), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Public), line_number, false),
         ),
         (
             "as",
-            Token::new(TokenKind::keyword(Keyword::As), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::As), line_number, false),
         ),
         (
             "implements",
-            Token::new(TokenKind::keyword(Keyword::Implements), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Implements), line_number, false),
         ),
         (
             "inherits",
-            Token::new(TokenKind::keyword(Keyword::Inherits), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Inherits), line_number, false),
         ),
         (
             "if",
-            Token::new(TokenKind::keyword(Keyword::If), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::If), line_number, false),
         ),
         (
             "then",
-            Token::new(TokenKind::keyword(Keyword::Then), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Then), line_number, false),
         ),
         (
             "else",
-            Token::new(TokenKind::keyword(Keyword::Else), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Else), line_number, false),
         ),
         (
             "for",
-            Token::new(TokenKind::keyword(Keyword::For), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::For), line_number, false),
         ),
         (
             "in",
-            Token::new(TokenKind::keyword(Keyword::In), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::In), line_number, false),
         ),
         (
             "let",
-            Token::new(TokenKind::keyword(Keyword::Let), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Let), line_number, false),
         ),
         (
             "optional",
-            Token::new(TokenKind::keyword(Keyword::Optional), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Optional), line_number, false),
         ),
         (
             "equal",
-            Token::new(TokenKind::keyword(Keyword::Equal), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Equal), line_number, false),
         ),
         (
             "function",
-            Token::new(TokenKind::keyword(Keyword::Function), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Function), line_number, false),
         ),
         (
             "mutable",
-            Token::new(TokenKind::keyword(Keyword::Mutable), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Mutable), line_number, false),
         ),
         (
             "borrow",
-            Token::new(TokenKind::keyword(Keyword::Borrow), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Borrow), line_number, false),
         ),
         (
             "own",
-            Token::new(TokenKind::keyword(Keyword::Own), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Own), line_number, false),
         ),
         (
             "return",
-            Token::new(TokenKind::keyword(Keyword::Return), line_number, false),
+            Token::new(TokenKind::Keyword(Keyword::Return), line_number, false),
         ),
     ]
     .into_iter()
