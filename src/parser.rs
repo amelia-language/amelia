@@ -10,6 +10,10 @@ pub fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) -
         let mut new_line_number = line_number;
 
         if result.is_none() {
+            result = parse_as(syntax, line_number);
+        }
+
+        if result.is_none() {
             result = parse_derive(syntax, line_number);
         }
 
@@ -76,7 +80,7 @@ macro_rules! parse_capture {
     ($syntax:expr, $RE:tt, $token_kind:tt, $line_number:expr, $eos:tt) => {
         if let Some(caps) = $RE.captures($syntax) {
             Some((
-                Token::new(TokenKind::$token_kind, $line_number, $eos),
+                Token::new($token_kind, $line_number, $eos),
                 (
                     caps.get(1).map_or("", |m| m.as_str()),
                     caps.get(2).map_or("", |m| m.as_str()),
@@ -92,42 +96,48 @@ fn parse_open_parens<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&
     lazy_static! {
         static ref RE: Regex = Regex::new("^(\\()(?s)(.*)$").unwrap();
     }
-    parse_capture!(syntax, RE, OpenParen, line_number, false)
+    let token_kind = TokenKind::OpenParen;
+    parse_capture!(syntax, RE, token_kind, line_number, false)
 }
 
 fn parse_close_parens<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
         static ref RE: Regex = Regex::new("^(\\))(?s)(.*)$").unwrap();
     }
-    parse_capture!(syntax, RE, CloseParen, line_number, false)
+    let token_kind = TokenKind::CloseParen;
+    parse_capture!(syntax, RE, token_kind, line_number, false)
 }
 
 fn parse_dot<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
         static ref RE: Regex = Regex::new("^(\\.)(?s)(.*)$").unwrap();
     }
-    parse_capture!(syntax, RE, Dot, line_number, false)
+    let token_kind = TokenKind::Dot;
+    parse_capture!(syntax, RE, token_kind, line_number, false)
 }
 
 fn parse_comma<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
         static ref RE: Regex = Regex::new("^(,)(?s)(.*)$").unwrap();
     }
-    parse_capture!(syntax, RE, Comma, line_number, false)
+    let token_kind = TokenKind::Comma;
+    parse_capture!(syntax, RE, token_kind, line_number, false)
 }
 
 fn parse_line_comment<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
         static ref RE: Regex = Regex::new("^(//.*)(?s)(.*)$").unwrap();
     }
-    parse_capture!(syntax, RE, LineComment, line_number, false)
+    let token_kind = TokenKind::LineComment;
+    parse_capture!(syntax, RE, token_kind, line_number, false)
 }
 
 fn parse_block_comment<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
         static ref RE: Regex = Regex::new("^(?s)(/\\*.*\\*/)(.*)$").unwrap();
     }
-    parse_capture!(syntax, RE, BlockComment, line_number, false)
+    let token_kind = TokenKind::BlockComment;
+    parse_capture!(syntax, RE, token_kind, line_number, false)
 }
 
 fn match_newlines<'a>(syntax: &'a str) -> Vec<Captures> {
@@ -141,28 +151,40 @@ fn parse_identifier<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'
     lazy_static! {
         static ref RE: Regex = Regex::new("^([A-Za-z_0-9]+)(?s)(\\s|\\(|.*)$").unwrap();
     }
-    parse_capture!(syntax, RE, Identifier, line_number, false)
+    let token_kind = TokenKind::Identifier;
+    parse_capture!(syntax, RE, token_kind, line_number, false)
 }
 
 fn parse_identifier_end<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
         static ref RE: Regex = Regex::new("^([A-Za-z_0-9]+\\n)(?s)(\\s|\\(|.*)$").unwrap();
     }
-    parse_capture!(syntax, RE, Identifier, line_number, true)
+    let token_kind = TokenKind::Identifier;
+    parse_capture!(syntax, RE, token_kind, line_number, true)
 }
 
 fn parse_whitespace<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
         static ref RE: Regex = Regex::new("^([[:blank:]])(?s)(.*)$").unwrap();
     }
-    parse_capture!(syntax, RE, Whitespace, line_number, false)
+    let token_kind = TokenKind::Whitespace;
+    parse_capture!(syntax, RE, token_kind, line_number, false)
 }
 
 fn parse_newline<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
         static ref RE: Regex = Regex::new("^(\\n)(?s)(.*)$").unwrap();
     }
-    parse_capture!(syntax, RE, NewLine, line_number, false)
+    let token_kind = TokenKind::NewLine;
+    parse_capture!(syntax, RE, token_kind, line_number, false)
+}
+
+fn parse_as<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new("^(\\sas)(?s)(.*)$").unwrap();
+    }
+    let token_kind = TokenKind::Keyword(Keyword::As);
+    parse_capture!(syntax, RE, token_kind, line_number, false)
 }
 
 fn parse_derive<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
@@ -227,10 +249,6 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
         (
             "public",
             Token::new(TokenKind::Keyword(Keyword::Public), line_number, false),
-        ),
-        (
-            "as",
-            Token::new(TokenKind::Keyword(Keyword::As), line_number, false),
         ),
         (
             "implements",
