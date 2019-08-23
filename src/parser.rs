@@ -22,6 +22,10 @@ pub fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) -
         }
 
         if result.is_none() {
+            result = parse_macro(syntax, line_number);
+        }
+
+        if result.is_none() {
             result = parse_identifier(syntax, line_number);
         }
 
@@ -187,6 +191,14 @@ fn parse_type_with_generics<'a>(syntax: &'a str, line_number: i32) -> Option<(To
     parse_capture!(syntax, RE, token_kind, line_number, false)
 }
 
+fn parse_macro<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new("^([A-Za-z_0-9]+![\\(?|{?|\\[?].*[\\)?|}?|\\]?]\\n?)(?s)(.*)$").unwrap();
+    }
+    let token_kind = TokenKind::Macro;
+    parse_capture!(syntax, RE, token_kind, line_number, false)
+}
+
 fn parse_derive<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
         static ref RE: Regex = Regex::new("^(derive\\(.*\\))(?s)(.*)$").unwrap();
@@ -334,7 +346,7 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
     .into_iter()
     {
         let (pattern, token) = parsing;
-        let full_pattern = format!("^({})(?s)(.*)$", pattern);
+        let full_pattern = format!("^({})(?s)(\\s.*)$", pattern);
 
         if let Some(parsed_result) = parse(full_pattern, syntax) {
             return Some((token.clone(), parsed_result));

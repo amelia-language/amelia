@@ -36,6 +36,7 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::Keyword(Keyword::Derive) => format!("#[{}]", node_data),
                     TokenKind::Keyword(Keyword::Implements) => "impl".to_string(),
                     TokenKind::Keyword(Keyword::For) => "for".to_string(),
+                    TokenKind::Macro => node_data.to_string(),
                     TokenKind::OpenParen => "(".to_string(),
                     TokenKind::CloseParen => ")".to_string(),
                     TokenKind::Dot => ".".to_string(),

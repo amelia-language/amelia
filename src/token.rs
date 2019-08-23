@@ -77,6 +77,7 @@ pub enum TokenKind {
     Percent,
     Keyword(keyword::Keyword),
     TypeWithGeneric,
+    Macro,
     Unknown,
 }
 
