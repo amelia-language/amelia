@@ -106,7 +106,7 @@ fn parse_open_parens<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&
 
 fn parse_close_parens<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
-        static ref RE: Regex = Regex::new("^(\\))(?s)(.*)$").unwrap();
+        static ref RE: Regex = Regex::new("^(\\)\\n?)(?s)(.*)$").unwrap();
     }
     let token_kind = TokenKind::CloseParen;
     parse_capture!(syntax, RE, token_kind, line_number, false)

@@ -31,6 +31,8 @@ pub fn transpile(ast: Node) -> String {
                         identifier
                     },
                     TokenKind::Keyword(Keyword::As) => ":".to_string(),
+                    TokenKind::Keyword(Keyword::If) => "if".to_string(),
+                    TokenKind::Keyword(Keyword::Else) => "} else".to_string(),
                     TokenKind::Keyword(Keyword::Do) => "{".to_string(),
                     TokenKind::Keyword(Keyword::End) => "}".to_string(),
                     TokenKind::Keyword(Keyword::Derive) => format!("#[{}]", node_data),
@@ -38,7 +40,10 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::Keyword(Keyword::For) => "for".to_string(),
                     TokenKind::Macro => node_data.to_string(),
                     TokenKind::OpenParen => "(".to_string(),
-                    TokenKind::CloseParen => ")".to_string(),
+                    TokenKind::CloseParen => {
+                        let identifier = str::replace(node_data, "\n", ";\n");
+                        identifier
+                    },
                     TokenKind::Dot => ".".to_string(),
                     TokenKind::Keyword(Keyword::Function) => "fn".to_string(),
                     TokenKind::Keyword(Keyword::PublicFunction) => "pub fn".to_string(),
