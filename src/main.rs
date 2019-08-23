@@ -30,7 +30,7 @@ fn test() {
                 data: None 
             };
     parser::recursive_parse(&contents, &mut tree, 1);
-    let mut file = File::create("examples/test.rs")
+    let mut file = File::create("examples/testrs")
         .expect("Someting went wrong creating the file");
     file.write_all(transpile(tree).as_bytes());
 }

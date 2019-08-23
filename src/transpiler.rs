@@ -25,7 +25,7 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::NewLine => "\n".to_string(),
                     TokenKind::Comma => ",".to_string(),
                     TokenKind::Identifier => {
-                        let identifier = str::replace(node_data, "\n", ";");
+                        let identifier = str::replace(node_data, "\n", ";\n");
                         identifier
                     },
                     _ => "".to_string()
