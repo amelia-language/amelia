@@ -13,7 +13,9 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::Keyword(Keyword::Module) => "mod".to_string(),
                     TokenKind::Keyword(Keyword::Public) => "pub".to_string(),
                     TokenKind::Keyword(Keyword::Trait) => "trait".to_string(),
-                    TokenKind::Keyword(Keyword::Struct) => "struct".to_string(),
+                    TokenKind::Keyword(Keyword::Struct) => {
+                        "#[derive(Debug, Clone, Default, PartialEq, PartialOrd)]\nstruct".to_string()
+                    },
                     TokenKind::Keyword(Keyword::As) => ":".to_string(),
                     TokenKind::Keyword(Keyword::Do) => "{".to_string(),
                     TokenKind::Keyword(Keyword::End) => "}".to_string(),

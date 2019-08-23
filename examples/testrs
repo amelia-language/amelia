@@ -11,13 +11,15 @@ mod my_test {
   }
 
   #[derive(Serialize, Deserialize)]
-  pub struct Animal {
+  pub #[derive(Debug, Clone, Default, PartialEq, PartialOrd)]
+struct Animal {
     pub name: String;
     pub  sound: String;
     pub age: Int32;
   }
 
-  struct Cat  Animal {
+  #[derive(Debug, Clone, Default, PartialEq, PartialOrd)]
+struct Cat  Animal {
     playful: Boolean;
   }
 
