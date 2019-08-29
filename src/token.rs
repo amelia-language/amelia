@@ -31,6 +31,7 @@ pub enum TokenKind {
     DotDotDot,
     DotDotEq,
     DotDot,
+    DoubleDot,
     NamespaceSeparator,
     Dot,
     OpenParen,

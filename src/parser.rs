@@ -449,6 +449,10 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
             "=",
             Token::new(TokenKind::Assign, line_number, false),
         ),
+        (
+            ":",
+            Token::new(TokenKind::DoubleDot, line_number, false),
+        ),
     ]
     .into_iter()
     {
