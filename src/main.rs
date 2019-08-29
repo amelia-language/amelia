@@ -12,6 +12,7 @@ mod token;
 mod transpiler;
 mod ast;
 mod parser;
+mod lexeme;
 
 use ast::Node;
 use transpiler::transpile;

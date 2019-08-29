@@ -3,6 +3,7 @@ use std::str;
 use crate::ast::Node;
 use crate::token::{ TokenKind, LiteralKind };
 use crate::keyword::Keyword;
+use crate::lexeme::Lexeme;
 
 pub fn transpile(ast: Node) -> String {
     let mut syntax = vec![];
@@ -86,6 +87,7 @@ pub fn transpile(ast: Node) -> String {
                         let data_type = str::replace(node_data, "\n", ";\n");
                         data_type.replace("Byte", "u8")
                     },
+                    TokenKind::Lexeme(Lexeme::String) => str::replace(node_data, "\n", ";\n"),
                     _ => "".to_string()
                 }
             );

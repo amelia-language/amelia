@@ -31,4 +31,49 @@ struct Cat  Animal {
       if last_name  {
          Ok(format!("{} {}", self.name, last_name))
       } else {
-         Err(
+         Err("Missing last name");
+      end;
+    end;
+  end;
+;
+  let cat_1 = Cat::new(name: "Fl%ur", age: 1, playful: false);
+  let cat_2 = Cat::new(name: "Fofo", age: 2, playful: true);
+;
+  if cat_1.name equal "Fl%ur" then do;
+    println!("my name is Flur");
+  else do;
+    println!(format!("my name is not Flur is {}", cat_1.show_name()));
+  end;
+;
+  if cat_2.full_name(last_name: "Marshal") not equal "Tom" then do;
+    println!("my name is not Tom");
+  end;
+;
+  if (4 + 5 equal 9) and (7 + 8 not equal 20) then do;
+    println!("This is printed");
+  end;
+;
+  println!("My full name is {}", cat.full_name("Doe"));
+    ;
+  let my_array = [1, 2, 3, 4];
+  let my_tuple = (1, 2);
+  let my_hash_map = {uno: 1, dos: 2};
+  let my_vector = vec![1, 2, 3, 4];
+;
+  enum States do;
+    Approved;
+    Cancelled;
+    Disable;
+    Rejected;
+  end;
+;
+  let state = States::Approved;
+;
+  match state do;
+    Approved => "Bill Approved";
+    Rejected => "Bill Rejected";
+  end;
+;
+  macro_rules! foo do;
+    ($arg as ident) => do;
+      return println!("{}", 

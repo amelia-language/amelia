@@ -2,6 +2,7 @@ use regex::{ Regex, Captures };
 use crate::keyword::Keyword;
 use crate::token::{Token, TokenKind, LiteralKind};
 use crate::ast::Node;
+use crate::lexeme::Lexeme;
 
 pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) -> 
     Result<bool, String> 
@@ -33,6 +34,10 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
 
         if result.is_none() {
             result = parse_identifier(full_code, new_line_number);
+        }
+
+        if result.is_none() {
+            result = parse_string(full_code, new_line_number);
         }
 
         if result.is_none() {
@@ -226,6 +231,14 @@ fn parse_derive<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a st
     } else {
         None
     }
+}
+
+fn parse_string<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r#"^(?s)(".*")(.*)$"#).unwrap();
+    }
+    let token_kind = TokenKind::Lexeme(Lexeme::String);
+    parse_capture!(syntax, RE, token_kind, line_number, false)
 }
 
 fn parse_type<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {

@@ -1,6 +1,6 @@
 use crate::token::Token;
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct Node {
     pub token: Token,
     pub children: Vec<Node>,

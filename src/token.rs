@@ -1,18 +1,19 @@
 use crate::keyword;
+use crate::lexeme;
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Span {
     line: i32
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct Token {
     pub kind: TokenKind,
     pub span: Span,
     pub eos: bool
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum TokenKind {
     Root,
     LineComment,
@@ -22,6 +23,7 @@ pub enum TokenKind {
     IdentifierEnd,
     NewLine,
     Literal(LiteralKind),
+    Lexeme(lexeme::Lexeme),
     Lifetime,
     Semi,
     Comma,
