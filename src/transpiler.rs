@@ -43,7 +43,7 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::Macro => node_data.to_string(),
                     TokenKind::OpenParen => "(".to_string(),
                     TokenKind::CloseParen => {
-                        handle_new_line(new_line, node_data)
+                        handle_new_line(&mut new_line, node_data)
                     },
                     TokenKind::Dot => ".".to_string(),
                     TokenKind::Whitespace => " ".to_string(),
@@ -53,7 +53,7 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::DoubleDot => ":".to_string(),
                     TokenKind::NamespaceSeparator => "::".to_string(),
                     TokenKind::Identifier => {
-                        handle_new_line(new_line, node_data)
+                        handle_new_line(&mut new_line, node_data)
                     },
                     TokenKind::Literal(LiteralKind::Boolean) => {
                         let data_type = str::replace(node_data, "\n", ";\n");
@@ -97,7 +97,7 @@ pub fn transpile(ast: Node) -> String {
                         data_type.replace("Byte", "u8")
                     },
                     TokenKind::Lexeme(Lexeme::String) => {
-                        handle_new_line(new_line, node_data)
+                        handle_new_line(&mut new_line, node_data)
                     },
                     TokenKind::Keyword(Keyword::Return) => {
                         new_line = false;
@@ -112,12 +112,12 @@ pub fn transpile(ast: Node) -> String {
     syntax.join("")
 }
 
-fn handle_new_line(mut new_line: bool, data: &str) -> String {
-    if new_line {
+fn handle_new_line(new_line: &mut bool, data: &str) -> String {
+    if *new_line {
         str::replace(data, "\n", ";\n")
     } else {
         if data.find("\n").is_some() {
-            new_line = true;
+            *new_line = true;
         }
         data.to_string()
     }
