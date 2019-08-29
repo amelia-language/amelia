@@ -3,54 +3,56 @@ use crate::keyword::Keyword;
 use crate::token::{Token, TokenKind};
 use crate::ast::Node;
 
-pub fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) -> 
+pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) -> 
     Result<bool, String> 
 {
-        let mut result = parse_to_token(syntax, line_number);
-        let mut new_line_number = line_number;
+    let mut full_code: &'a str = syntax;
+    let mut new_line_number = line_number;
+    loop {
+        let mut result = parse_to_token(full_code, new_line_number);
 
         if result.is_none() {
-            result = parse_as(syntax, line_number);
+            result = parse_as(full_code, new_line_number);
         }
 
         if result.is_none() {
-            result = parse_derive(syntax, line_number);
+            result = parse_derive(full_code, new_line_number);
         }
 
         if result.is_none() {
-            result = parse_type_with_generics(syntax, line_number);
+            result = parse_type_with_generics(full_code, new_line_number);
         }
 
         if result.is_none() {
-            result = parse_macro(syntax, line_number);
+            result = parse_macro(full_code, new_line_number);
         }
 
         if result.is_none() {
-            result = parse_identifier(syntax, line_number);
+            result = parse_identifier(full_code, new_line_number);
         }
 
         if result.is_none() {
-            result = parse_line_comment(syntax, line_number);
+            result = parse_line_comment(full_code, new_line_number);
         }
 
         if result.is_none() {
-            result = parse_open_parens(syntax, line_number);
+            result = parse_open_parens(full_code, new_line_number);
         }
 
         if result.is_none() {
-            result = parse_close_parens(syntax, line_number);
+            result = parse_close_parens(full_code, new_line_number);
         }
 
         if result.is_none() {
-            result = parse_dot(syntax, line_number);
+            result = parse_dot(full_code, new_line_number);
         }
 
         if result.is_none() {
-            result = parse_comma(syntax, line_number);
+            result = parse_comma(full_code, new_line_number);
         }
 
         if result.is_none() {
-            result = parse_block_comment(syntax, line_number);
+            result = parse_block_comment(full_code, new_line_number);
             if let Some(result_parsed) = &result {
                 let newlines = match_newlines((result_parsed.1).0);
                 new_line_number = new_line_number + newlines.len() as i32;
@@ -58,11 +60,11 @@ pub fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) -
         }
 
         if result.is_none() {
-            result = parse_whitespace(syntax, line_number);
+            result = parse_whitespace(full_code, new_line_number);
         }
 
         if result.is_none() {
-            result = parse_newline(syntax, line_number);
+            result = parse_newline(full_code, new_line_number);
             new_line_number = new_line_number + 1;
         }
 
@@ -72,11 +74,11 @@ pub fn recursive_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) -
                 children: vec![],
                 data: Some((result_parsed.1).0.to_string())
             });
-            recursive_parse((result_parsed.1).1, tree, new_line_number);
+            full_code = (result_parsed.1).1;
         } else {
             return Err(format!("pattern not recognize {}", syntax))
         }
-
+    }
     Ok(true)
 }
 
