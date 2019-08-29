@@ -78,8 +78,11 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
         } else {
             return Err(format!("pattern not recognize {}", syntax))
         }
+
+        if full_code == "" {
+            return Ok(true)
+        }
     }
-    Ok(true)
 }
 
 macro_rules! parse_capture {
