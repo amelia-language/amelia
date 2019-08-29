@@ -314,6 +314,10 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
             Token::new(TokenKind::Keyword(Keyword::Module), line_number, false),
         ),
         (
+            "let",
+            Token::new(TokenKind::Keyword(Keyword::Let), line_number, false),
+        ),
+        (
             "do",
             Token::new(TokenKind::Keyword(Keyword::Do), line_number, false),
         ),

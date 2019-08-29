@@ -37,14 +37,15 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::Keyword(Keyword::Derive) => format!("#[{}]", node_data),
                     TokenKind::Keyword(Keyword::Implements) => "impl".to_string(),
                     TokenKind::Keyword(Keyword::For) => "for".to_string(),
+                    TokenKind::Keyword(Keyword::Function) => "fn".to_string(),
+                    TokenKind::Keyword(Keyword::PublicFunction) => "pub fn".to_string(),
+                    TokenKind::Keyword(Keyword::Let) => "let".to_string(),
                     TokenKind::Macro => node_data.to_string(),
                     TokenKind::OpenParen => "(".to_string(),
                     TokenKind::CloseParen => {
                         handle_new_line(new_line, node_data)
                     },
                     TokenKind::Dot => ".".to_string(),
-                    TokenKind::Keyword(Keyword::Function) => "fn".to_string(),
-                    TokenKind::Keyword(Keyword::PublicFunction) => "pub fn".to_string(),
                     TokenKind::Whitespace => " ".to_string(),
                     TokenKind::NewLine => "\n".to_string(),
                     TokenKind::Comma => ",".to_string(),

@@ -36,4 +36,4 @@ struct Cat  Animal {
     }
   }
 
-   cat_1 
+  let cat_1 
