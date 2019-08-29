@@ -235,7 +235,7 @@ fn parse_derive<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a st
 
 fn parse_string<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
-        static ref RE: Regex = Regex::new(r#"^(?s)(".*")(.*)$"#).unwrap();
+        static ref RE: Regex = Regex::new(r#"^(?s)(".*?")(.*)$"#).unwrap();
     }
     let token_kind = TokenKind::Lexeme(Lexeme::String);
     parse_capture!(syntax, RE, token_kind, line_number, false)

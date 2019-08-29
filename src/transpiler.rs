@@ -7,6 +7,7 @@ use crate::lexeme::Lexeme;
 
 pub fn transpile(ast: Node) -> String {
     let mut syntax = vec![];
+    let mut new_line = true;
     for node in ast.children {
         if let Some(node_data) = &node.data {
             syntax.push(
@@ -38,14 +39,18 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::Keyword(Keyword::For) => "for".to_string(),
                     TokenKind::Macro => node_data.to_string(),
                     TokenKind::OpenParen => "(".to_string(),
-                    TokenKind::CloseParen => str::replace(node_data, "\n", ";\n"),
+                    TokenKind::CloseParen => {
+                        handle_new_line(new_line, node_data)
+                    },
                     TokenKind::Dot => ".".to_string(),
                     TokenKind::Keyword(Keyword::Function) => "fn".to_string(),
                     TokenKind::Keyword(Keyword::PublicFunction) => "pub fn".to_string(),
                     TokenKind::Whitespace => " ".to_string(),
                     TokenKind::NewLine => "\n".to_string(),
                     TokenKind::Comma => ",".to_string(),
-                    TokenKind::Identifier => str::replace(node_data, "\n", ";\n"),
+                    TokenKind::Identifier => {
+                        handle_new_line(new_line, node_data)
+                    },
                     TokenKind::Literal(LiteralKind::Boolean) => {
                         let data_type = str::replace(node_data, "\n", ";\n");
                         data_type.replace("Boolean", "bool")
@@ -87,7 +92,13 @@ pub fn transpile(ast: Node) -> String {
                         let data_type = str::replace(node_data, "\n", ";\n");
                         data_type.replace("Byte", "u8")
                     },
-                    TokenKind::Lexeme(Lexeme::String) => str::replace(node_data, "\n", ";\n"),
+                    TokenKind::Lexeme(Lexeme::String) => {
+                        handle_new_line(new_line, node_data)
+                    },
+                    TokenKind::Keyword(Keyword::Return) => {
+                        new_line = false;
+                        "".to_string()
+                    },
                     _ => "".to_string()
                 }
             );
@@ -95,4 +106,15 @@ pub fn transpile(ast: Node) -> String {
         syntax.push(transpile(node));
     }
     syntax.join("")
+}
+
+fn handle_new_line(mut new_line: bool, data: &str) -> String {
+    if new_line {
+        str::replace(data, "\n", ";\n")
+    } else {
+        if data.find("\n").is_some() {
+            new_line = true;
+        }
+        data.to_string()
+    }
 }
