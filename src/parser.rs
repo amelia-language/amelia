@@ -1,6 +1,6 @@
 use regex::{ Regex, Captures };
 use crate::keyword::Keyword;
-use crate::token::{Token, TokenKind};
+use crate::token::{Token, TokenKind, LiteralKind};
 use crate::ast::Node;
 
 pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) -> 
@@ -10,6 +10,10 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
     let mut new_line_number = line_number;
     loop {
         let mut result = parse_to_token(full_code, new_line_number);
+
+        if result.is_none() {
+            result = parse_type(full_code, new_line_number);
+        }
 
         if result.is_none() {
             result = parse_as(full_code, new_line_number);
@@ -222,6 +226,71 @@ fn parse_derive<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a st
     } else {
         None
     }
+}
+
+fn parse_type<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+
+    for parsing in [
+        (
+            "Boolean",
+            Token::new(TokenKind::Literal(LiteralKind::Boolean), line_number, false),
+        ),
+        (
+            "String",
+            Token::new(TokenKind::Literal(LiteralKind::String), line_number, false),
+        ),
+        (
+            "Int32",
+            Token::new(TokenKind::Literal(LiteralKind::Int32), line_number, false),
+        ),
+        (
+            "Int64",
+            Token::new(TokenKind::Literal(LiteralKind::Int64), line_number, false),
+        ),
+        (
+            "UInt32",
+            Token::new(TokenKind::Literal(LiteralKind::UInt32), line_number, false),
+        ),
+        (
+            "UInt64",
+            Token::new(TokenKind::Literal(LiteralKind::UInt64), line_number, false),
+        ),
+        (
+            "Float64",
+            Token::new(TokenKind::Literal(LiteralKind::Float64), line_number, false),
+        ),
+        (
+            "Float32",
+            Token::new(TokenKind::Literal(LiteralKind::Float32), line_number, false),
+        ),
+        (
+            "Usize",
+            Token::new(TokenKind::Literal(LiteralKind::Usize), line_number, false),
+        ),
+        (
+            "Isize",
+            Token::new(TokenKind::Literal(LiteralKind::Isize), line_number, false),
+        ),
+        (
+            "Char",
+            Token::new(TokenKind::Literal(LiteralKind::Char), line_number, false),
+        ),
+        (
+            "Byte",
+            Token::new(TokenKind::Literal(LiteralKind::Byte), line_number, false),
+        ),
+    ]
+    .into_iter()
+    {
+        let (pattern, token) = parsing;
+        let full_pattern = format!("^({}[,|>|)|\\n])(?s)(.*)$", pattern);
+
+        if let Some(parsed_result) = parse(full_pattern, syntax) {
+            return Some((token.clone(), parsed_result));
+        }
+    }
+
+    None
 }
 
 fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {

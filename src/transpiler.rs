@@ -1,7 +1,7 @@
 use std::str;
 
 use crate::ast::Node;
-use crate::token::TokenKind;
+use crate::token::{ TokenKind, LiteralKind };
 use crate::keyword::Keyword;
 
 pub fn transpile(ast: Node) -> String {
@@ -26,10 +26,7 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::Keyword(Keyword::PublicEnum) => {
                         "#[derive(Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]\npub enum".to_string()
                     },
-                    TokenKind::TypeWithGeneric => {
-                        let identifier = str::replace(node_data, "\n", ";\n");
-                        identifier
-                    },
+                    TokenKind::TypeWithGeneric => str::replace(node_data, "\n", ";\n"),
                     TokenKind::Keyword(Keyword::As) => ":".to_string(),
                     TokenKind::Keyword(Keyword::If) => "if".to_string(),
                     TokenKind::Keyword(Keyword::Else) => "} else".to_string(),
@@ -40,19 +37,54 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::Keyword(Keyword::For) => "for".to_string(),
                     TokenKind::Macro => node_data.to_string(),
                     TokenKind::OpenParen => "(".to_string(),
-                    TokenKind::CloseParen => {
-                        let identifier = str::replace(node_data, "\n", ";\n");
-                        identifier
-                    },
+                    TokenKind::CloseParen => str::replace(node_data, "\n", ";\n"),
                     TokenKind::Dot => ".".to_string(),
                     TokenKind::Keyword(Keyword::Function) => "fn".to_string(),
                     TokenKind::Keyword(Keyword::PublicFunction) => "pub fn".to_string(),
                     TokenKind::Whitespace => " ".to_string(),
                     TokenKind::NewLine => "\n".to_string(),
                     TokenKind::Comma => ",".to_string(),
-                    TokenKind::Identifier => {
-                        let identifier = str::replace(node_data, "\n", ";\n");
-                        identifier
+                    TokenKind::Identifier => str::replace(node_data, "\n", ";\n"),
+                    TokenKind::Literal(LiteralKind::Boolean) => {
+                        let data_type = str::replace(node_data, "\n", ";\n");
+                        data_type.replace("Boolean", "bool")
+                    },
+                    TokenKind::Literal(LiteralKind::String) => str::replace(node_data, "\n", ";\n"),
+                    TokenKind::Literal(LiteralKind::Int32) =>{
+                        let data_type = str::replace(node_data, "\n", ";\n");
+                        data_type.replace("Int32", "i32")
+                    },
+                    TokenKind::Literal(LiteralKind::Int64) =>{
+                        let data_type = str::replace(node_data, "\n", ";\n");
+                        data_type.replace("Int64", "i64")
+                    },
+                    TokenKind::Literal(LiteralKind::UInt32) => {
+                        let data_type = str::replace(node_data, "\n", ";\n");
+                        data_type.replace("UInt32", "u32")
+                    },
+                    TokenKind::Literal(LiteralKind::UInt64) => {
+                        let data_type = str::replace(node_data, "\n", ";\n");
+                        data_type.replace("UInt64", "u64")
+                    },
+                    TokenKind::Literal(LiteralKind::Float64) => {
+                        let data_type = str::replace(node_data, "\n", ";\n");
+                        data_type.replace("Float64", "f64")
+                    },
+                    TokenKind::Literal(LiteralKind::Float32) => {
+                        let data_type = str::replace(node_data, "\n", ";\n");
+                        data_type.replace("Float32", "f32")
+                    },
+                    TokenKind::Literal(LiteralKind::Usize) => {
+                        let data_type = str::replace(node_data, "\n", ";\n");
+                        data_type.replace("Float32", "f32")
+                    },
+                    TokenKind::Literal(LiteralKind::Isize) => {
+                        let data_type = str::replace(node_data, "\n", ";\n");
+                        data_type.replace("Isize", "isize")
+                    },
+                    TokenKind::Literal(LiteralKind::Byte) => {
+                        let data_type = str::replace(node_data, "\n", ";\n");
+                        data_type.replace("Byte", "u8")
                     },
                     _ => "".to_string()
                 }

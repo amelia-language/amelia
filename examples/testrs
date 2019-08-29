@@ -15,12 +15,12 @@ mod my_test {
 pub struct Animal {
     pub name: String;
     pub sound: Option<String>;
-    pub age: Int32;
+    pub age: i32;
   }
 
   #[derive(Debug, Clone, Default, PartialEq)]
 struct Cat  Animal {
-    playful: Boolean;
+    playful: bool;
   }
 
   impl Naming for Cat {

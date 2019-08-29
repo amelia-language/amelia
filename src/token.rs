@@ -94,6 +94,7 @@ pub enum LiteralKind {
     Char,
     Byte,
     String,
+    Boolean
 }
 
 impl Token {
