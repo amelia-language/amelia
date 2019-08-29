@@ -36,4 +36,4 @@ struct Cat  Animal {
     }
   }
 
-  let cat_1 
+  let cat_1 = Cat::new(name

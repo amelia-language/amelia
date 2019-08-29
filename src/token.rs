@@ -15,6 +15,7 @@ pub struct Token {
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum TokenKind {
+    Assign,
     Root,
     LineComment,
     BlockComment,
@@ -30,6 +31,7 @@ pub enum TokenKind {
     DotDotDot,
     DotDotEq,
     DotDot,
+    NamespaceSeparator,
     Dot,
     OpenParen,
     CloseParen,

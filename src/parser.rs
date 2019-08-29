@@ -13,6 +13,10 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
         let mut result = parse_to_token(full_code, new_line_number);
 
         if result.is_none() {
+            result = parse_namespace_separator(full_code, new_line_number);
+        }
+
+        if result.is_none() {
             result = parse_type(full_code, new_line_number);
         }
 
@@ -210,6 +214,14 @@ fn parse_macro<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str
         static ref RE: Regex = Regex::new("^([A-Za-z_0-9]+![\\(?|{?|\\[?].*[\\)?|}?|\\]?]\\n?)(?s)(.*)$").unwrap();
     }
     let token_kind = TokenKind::Macro;
+    parse_capture!(syntax, RE, token_kind, line_number, false)
+}
+
+fn parse_namespace_separator<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new("^(::)(?s)(.*)$").unwrap();
+    }
+    let token_kind = TokenKind::NamespaceSeparator;
     parse_capture!(syntax, RE, token_kind, line_number, false)
 }
 
@@ -432,6 +444,10 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
         (
             "return",
             Token::new(TokenKind::Keyword(Keyword::Return), line_number, false),
+        ),
+        (
+            "=",
+            Token::new(TokenKind::Assign, line_number, false),
         ),
     ]
     .into_iter()
