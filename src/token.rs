@@ -25,6 +25,7 @@ pub enum TokenKind {
     NewLine,
     Literal(LiteralKind),
     Lexeme(lexeme::Lexeme),
+    Operator(Operator),
     Lifetime,
     Semi,
     Comma,
@@ -102,6 +103,15 @@ pub enum LiteralKind {
     Byte,
     String,
     Boolean
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Operator {
+    Add,
+    Minus,
+    Divide,
+    Multiply,
+    Mod
 }
 
 impl Token {

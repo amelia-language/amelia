@@ -1,7 +1,7 @@
 use std::str;
 
 use crate::ast::Node;
-use crate::token::{ TokenKind, LiteralKind };
+use crate::token::{ TokenKind, LiteralKind, Operator };
 use crate::keyword::Keyword;
 use crate::lexeme::Lexeme;
 
@@ -58,6 +58,11 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::Identifier => {
                         handle_new_line(&mut new_line, node_data)
                     },
+                    TokenKind::Operator(Operator::Add) => "+".to_string(),
+                    TokenKind::Operator(Operator::Minus) => "-".to_string(),
+                    TokenKind::Operator(Operator::Multiply) => "*".to_string(),
+                    TokenKind::Operator(Operator::Divide) => "/".to_string(),
+                    TokenKind::Operator(Operator::Mod) => "%".to_string(),
                     TokenKind::Literal(LiteralKind::Boolean) => {
                         let data_type = str::replace(node_data, "\n", ";\n");
                         data_type.replace("Boolean", "bool")

@@ -50,7 +50,7 @@ module my_test do
     println!("my name is not Tom")
   end
 
-  if (4 + 5 equal 9) and (7 + 8 not equal 20) then do
+  if (4 + 5 equal 9) and (7 / 8 not equal 20) then do
     println!("This is printed")
   end
 

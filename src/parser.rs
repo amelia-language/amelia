@@ -1,6 +1,6 @@
 use regex::{ Regex, Captures };
 use crate::keyword::Keyword;
-use crate::token::{Token, TokenKind, LiteralKind};
+use crate::token::{Token, TokenKind, LiteralKind, Operator};
 use crate::ast::Node;
 use crate::lexeme::Lexeme;
 
@@ -14,6 +14,10 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
 
         if result.is_none() {
             result = parse_namespace_separator(full_code, new_line_number);
+        }
+            
+        if result.is_none() {
+            result = parse_operator(full_code, new_line_number);
         }
 
         if result.is_none() {
@@ -263,6 +267,43 @@ fn parse_string<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a st
     }
     let token_kind = TokenKind::Lexeme(Lexeme::String);
     parse_capture!(syntax, RE, token_kind, line_number, false)
+}
+
+fn parse_operator<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+
+    for parsing in [
+        (
+            "\\+",
+            Token::new(TokenKind::Operator(Operator::Add), line_number, false),
+        ),
+        (
+            "-",
+            Token::new(TokenKind::Operator(Operator::Minus), line_number, false),
+        ),
+        (
+            "\\*",
+            Token::new(TokenKind::Operator(Operator::Multiply), line_number, false),
+        ),
+        (
+            "/",
+            Token::new(TokenKind::Operator(Operator::Divide), line_number, false),
+        ),
+        (
+            "%",
+            Token::new(TokenKind::Operator(Operator::Mod), line_number, false),
+        ),
+    ]
+    .into_iter()
+    {
+        let (pattern, token) = parsing;
+        let full_pattern = format!("^({})(?s)(\\s.*)$", pattern);
+
+        if let Some(parsed_result) = parse(full_pattern, syntax) {
+            return Some((token.clone(), parsed_result));
+        }
+    }
+
+    None
 }
 
 fn parse_type<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {

@@ -49,4 +49,10 @@ struct Cat  Animal {
     println!("my name is not Tom")
   }
 
-  if (4 
+  if (4 + 5 == 9) and (7 / 8 != 20)  {
+    println!("This is printed")
+  }
+
+  println!("My full name is {}", cat.full_name("Doe"))
+    
+  let my_array = 
