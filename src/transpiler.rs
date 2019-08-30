@@ -1,7 +1,7 @@
 use std::str;
 
 use crate::ast::Node;
-use crate::token::{ TokenKind, LiteralKind, Operator };
+use crate::token::{ TokenKind, LiteralKind, Operator, Collection };
 use crate::keyword::Keyword;
 use crate::lexeme::Lexeme;
 
@@ -45,9 +45,7 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::Not => "!".to_string(),
                     TokenKind::NotEqual => "!=".to_string(),
                     TokenKind::OpenParen => "(".to_string(),
-                    TokenKind::CloseParen => {
-                        handle_new_line(&mut new_line, node_data)
-                    },
+                    TokenKind::CloseParen => handle_new_line(&mut new_line, node_data),
                     TokenKind::Dot => ".".to_string(),
                     TokenKind::Whitespace => " ".to_string(),
                     TokenKind::NewLine => "\n".to_string(),
@@ -55,9 +53,8 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::Assign => "=".to_string(),
                     TokenKind::DoubleDot => ":".to_string(),
                     TokenKind::NamespaceSeparator => "::".to_string(),
-                    TokenKind::Identifier => {
-                        handle_new_line(&mut new_line, node_data)
-                    },
+                    TokenKind::Identifier => handle_new_line(&mut new_line, node_data),
+                    TokenKind::Collection(Collection::Array) => handle_new_line(&mut new_line, node_data),
                     TokenKind::Operator(Operator::Add) => "+".to_string(),
                     TokenKind::Operator(Operator::Minus) => "-".to_string(),
                     TokenKind::Operator(Operator::Multiply) => "*".to_string(),
@@ -104,9 +101,7 @@ pub fn transpile(ast: Node) -> String {
                         let data_type = str::replace(node_data, "\n", ";\n");
                         data_type.replace("Byte", "u8")
                     },
-                    TokenKind::Lexeme(Lexeme::String) => {
-                        handle_new_line(&mut new_line, node_data)
-                    },
+                    TokenKind::Lexeme(Lexeme::String) => handle_new_line(&mut new_line, node_data),
                     TokenKind::Keyword(Keyword::Return) => {
                         new_line = false;
                         "".to_string()

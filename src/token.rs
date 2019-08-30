@@ -26,6 +26,7 @@ pub enum TokenKind {
     Literal(LiteralKind),
     Lexeme(lexeme::Lexeme),
     Operator(Operator),
+    Collection(Collection),
     Lifetime,
     Semi,
     Comma,
@@ -112,6 +113,14 @@ pub enum Operator {
     Divide,
     Multiply,
     Mod
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Collection {
+    Array,
+    HashMap,
+    Tuple,
+    Vector
 }
 
 impl Token {

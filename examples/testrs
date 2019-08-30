@@ -55,4 +55,6 @@ struct Cat  Animal {
 
   println!("My full name is {}", cat.full_name("Doe"))
     
-  let my_array = 
+  let my_array = [1, 2, 3, 4];
+  let my_tuple = (1, 2);
+  let my_hash_map = 

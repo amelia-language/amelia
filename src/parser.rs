@@ -1,6 +1,6 @@
 use regex::{ Regex, Captures };
 use crate::keyword::Keyword;
-use crate::token::{Token, TokenKind, LiteralKind, Operator};
+use crate::token::{ Token, TokenKind, LiteralKind, Operator, Collection };
 use crate::ast::Node;
 use crate::lexeme::Lexeme;
 
@@ -50,6 +50,10 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
 
         if result.is_none() {
             result = parse_string(full_code, new_line_number);
+        }
+
+        if result.is_none() {
+            result = parse_array(full_code, new_line_number);
         }
 
         if result.is_none() {
@@ -238,6 +242,14 @@ fn parse_not_operator<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (
         static ref RE: Regex = Regex::new("^(not\\s)(?s)(.*)$").unwrap();
     }
     let token_kind = TokenKind::Not;
+    parse_capture!(syntax, RE, token_kind, line_number, false)
+}
+
+fn parse_array<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new("^(\\[.*,.*\\]\\n?)(?s)(\\s.*)$").unwrap();
+    }
+    let token_kind = TokenKind::Collection(Collection::Array);
     parse_capture!(syntax, RE, token_kind, line_number, false)
 }
 
