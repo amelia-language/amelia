@@ -58,7 +58,7 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::Collection(Collection::Tuple) => handle_new_line(&mut new_line, node_data),
                     TokenKind::Collection(Collection::HashMap) => {
                         let raw_items = node_data.split(",").collect::<Vec<_>>();
-                        let mut items: Vec<(String, String)> = vec![];
+                        let mut items: Vec<String> = vec![];
                         for item in raw_items.iter() {
                             let replaced = 
                                 item
@@ -70,7 +70,7 @@ pub fn transpile(ast: Node) -> String {
                             let vec_pair = trimmed.split(":").map(|s| s.to_string()).collect::<Vec<_>>();
 
                             items.push(
-                                (vec_pair[0].clone(), vec_pair[1].clone())
+                                format!(r#"("{}", {})"#, vec_pair[0].clone(), vec_pair[1].clone())
                             )
                         }
 
@@ -79,8 +79,8 @@ pub fn transpile(ast: Node) -> String {
                             new_line = true;
                         }
                         format!(
-                            ": std::collections::HashMap<&str, _> = {:#?}.iter().cloned().collect(){}",
-                            items,
+                            ": std::collections::HashMap<&str, _> = [{}].iter().cloned().collect(){}",
+                            items.join(","),
                             if new_line { ";\n" } else { "" })
                     },
                     TokenKind::Operator(Operator::Add) => "+".to_string(),

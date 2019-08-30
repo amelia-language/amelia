@@ -57,16 +57,7 @@ struct Cat  Animal {
     
   let my_array = [1, 2, 3, 4];
   let my_tuple = (1, 2);
-  let my_hash_map : std::collections::HashMap<&str, _> = [
-    (
-        "uno",
-        " 1",
-    ),
-    (
-        "dos",
-        " 2",
-    ),
-].iter().cloned().collect();
+  let my_hash_map : std::collections::HashMap<&str, _> = [("uno",  1),("dos",  2)].iter().cloned().collect();
   let my_vector = vec![1, 2, 3, 4]
 
   #[derive(Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
