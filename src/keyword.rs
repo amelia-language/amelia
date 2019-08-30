@@ -12,7 +12,6 @@ pub enum Keyword {
     Implements,
     Inherits,
     As,
-    Equal,
     Function,
     Mutable,
     Borrow,

@@ -28,7 +28,6 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::Keyword(Keyword::PublicEnum) => {
                         "#[derive(Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]\npub enum".to_string()
                     },
-                    TokenKind::TypeWithGeneric => str::replace(node_data, "\n", ";\n"),
                     TokenKind::Keyword(Keyword::As) => ":".to_string(),
                     TokenKind::Keyword(Keyword::If) => "if".to_string(),
                     TokenKind::Keyword(Keyword::Else) => "} else".to_string(),
@@ -40,7 +39,11 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::Keyword(Keyword::Function) => "fn".to_string(),
                     TokenKind::Keyword(Keyword::PublicFunction) => "pub fn".to_string(),
                     TokenKind::Keyword(Keyword::Let) => "let".to_string(),
+                    TokenKind::TypeWithGeneric => str::replace(node_data, "\n", ";\n"),
                     TokenKind::Macro => node_data.to_string(),
+                    TokenKind::Equal => "==".to_string(),
+                    TokenKind::Not => "!".to_string(),
+                    TokenKind::NotEqual => "!=".to_string(),
                     TokenKind::OpenParen => "(".to_string(),
                     TokenKind::CloseParen => {
                         handle_new_line(&mut new_line, node_data)

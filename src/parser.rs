@@ -25,6 +25,10 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
         }
 
         if result.is_none() {
+            result = parse_not_operator(full_code, new_line_number);
+        }
+
+        if result.is_none() {
             result = parse_derive(full_code, new_line_number);
         }
 
@@ -222,6 +226,14 @@ fn parse_namespace_separator<'a>(syntax: &'a str, line_number: i32) -> Option<(T
         static ref RE: Regex = Regex::new("^(::)(?s)(.*)$").unwrap();
     }
     let token_kind = TokenKind::NamespaceSeparator;
+    parse_capture!(syntax, RE, token_kind, line_number, false)
+}
+
+fn parse_not_operator<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new("^(not\\s)(?s)(.*)$").unwrap();
+    }
+    let token_kind = TokenKind::Not;
     parse_capture!(syntax, RE, token_kind, line_number, false)
 }
 
@@ -423,7 +435,11 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
         ),
         (
             "equal",
-            Token::new(TokenKind::Keyword(Keyword::Equal), line_number, false),
+            Token::new(TokenKind::Equal, line_number, false),
+        ),
+        (
+            "not equal",
+            Token::new(TokenKind::NotEqual, line_number, false),
         ),
         (
             "function",

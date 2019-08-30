@@ -51,6 +51,8 @@ pub enum TokenKind {
     Eq,
     FatArrow,
     Ne,
+    Equal,
+    NotEqual,
     Not,
     Le,
     LArrow,
