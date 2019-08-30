@@ -55,6 +55,7 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::NamespaceSeparator => "::".to_string(),
                     TokenKind::Identifier => handle_new_line(&mut new_line, node_data),
                     TokenKind::Collection(Collection::Array) => handle_new_line(&mut new_line, node_data),
+                    TokenKind::Collection(Collection::Tuple) => handle_new_line(&mut new_line, node_data),
                     TokenKind::Operator(Operator::Add) => "+".to_string(),
                     TokenKind::Operator(Operator::Minus) => "-".to_string(),
                     TokenKind::Operator(Operator::Multiply) => "*".to_string(),
