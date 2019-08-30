@@ -10,7 +10,11 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
     let mut full_code: &'a str = syntax;
     let mut new_line_number = line_number;
     loop {
-        let mut result = parse_to_token(full_code, new_line_number);
+        let mut result = parse_hash_map(full_code, new_line_number);
+
+        if result.is_none() {
+            result = parse_to_token(full_code, new_line_number);
+        }
 
         if result.is_none() {
             result = parse_namespace_separator(full_code, new_line_number);
@@ -262,6 +266,14 @@ fn parse_tuple<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str
         static ref RE: Regex = Regex::new("^(\\(.*,.*\\)\\n?)(?s)(\\s.*)$").unwrap();
     }
     let token_kind = TokenKind::Collection(Collection::Tuple);
+    parse_capture!(syntax, RE, token_kind, line_number, false)
+}
+
+fn parse_hash_map<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new("^(=\\s*\\{.*,.*\\}\\n?)(?s)(\\s.*)$").unwrap();
+    }
+    let token_kind = TokenKind::Collection(Collection::HashMap);
     parse_capture!(syntax, RE, token_kind, line_number, false)
 }
 

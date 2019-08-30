@@ -56,6 +56,33 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::Identifier => handle_new_line(&mut new_line, node_data),
                     TokenKind::Collection(Collection::Array) => handle_new_line(&mut new_line, node_data),
                     TokenKind::Collection(Collection::Tuple) => handle_new_line(&mut new_line, node_data),
+                    TokenKind::Collection(Collection::HashMap) => {
+                        let raw_items = node_data.split(",").collect::<Vec<_>>();
+                        let mut items: Vec<(String, String)> = vec![];
+                        for item in raw_items.iter() {
+                            let replaced = 
+                                item
+                                    .replace("=","")
+                                    .replace("{","")
+                                    .replace("}","");
+
+                            let trimmed = replaced.trim().to_string();
+                            let vec_pair = trimmed.split(":").map(|s| s.to_string()).collect::<Vec<_>>();
+
+                            items.push(
+                                (vec_pair[0].clone(), vec_pair[1].clone())
+                            )
+                        }
+
+                        let mut new_line = false;
+                        if node_data.find("\n").is_some() {
+                            new_line = true;
+                        }
+                        format!(
+                            ": std::collections::HashMap<&str, _> = {:#?}.iter().cloned().collect(){}",
+                            items,
+                            if new_line { ";\n" } else { "" })
+                    },
                     TokenKind::Operator(Operator::Add) => "+".to_string(),
                     TokenKind::Operator(Operator::Minus) => "-".to_string(),
                     TokenKind::Operator(Operator::Multiply) => "*".to_string(),
