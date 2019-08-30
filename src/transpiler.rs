@@ -39,6 +39,8 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::Keyword(Keyword::Function) => "fn".to_string(),
                     TokenKind::Keyword(Keyword::PublicFunction) => "pub fn".to_string(),
                     TokenKind::Keyword(Keyword::Let) => "let".to_string(),
+                    TokenKind::Keyword(Keyword::Borrow) => "&".to_string(),
+                    TokenKind::Keyword(Keyword::Own) => "*".to_string(),
                     TokenKind::TypeWithGeneric => str::replace(node_data, "\n", ";\n"),
                     TokenKind::Macro => node_data.to_string(),
                     TokenKind::Equal => "==".to_string(),

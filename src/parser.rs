@@ -17,6 +17,14 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
         }
 
         if result.is_none() {
+            result = parse_borrow(full_code, new_line_number);
+        }
+
+        if result.is_none() {
+            result = parse_own(full_code, new_line_number);
+        }
+
+        if result.is_none() {
             result = parse_namespace_separator(full_code, new_line_number);
         }
             
@@ -305,6 +313,22 @@ fn parse_string<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a st
     parse_capture!(syntax, RE, token_kind, line_number, false)
 }
 
+fn parse_borrow<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new("^(borrow\\s)(?s)(.*)$").unwrap();
+    }
+    let token_kind = TokenKind::Keyword(Keyword::Borrow);
+    parse_capture!(syntax, RE, token_kind, line_number, false)
+}
+
+fn parse_own<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new("^(own\\s)(?s)(.*)$").unwrap();
+    }
+    let token_kind = TokenKind::Keyword(Keyword::Own);
+    parse_capture!(syntax, RE, token_kind, line_number, false)
+}
+
 fn parse_operator<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
 
     for parsing in [
@@ -525,10 +549,6 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
         (
             "mutable",
             Token::new(TokenKind::Keyword(Keyword::Mutable), line_number, false),
-        ),
-        (
-            "borrow",
-            Token::new(TokenKind::Keyword(Keyword::Borrow), line_number, false),
         ),
         (
             "own",
