@@ -16,7 +16,7 @@ mod lexeme;
 
 use ast::Node;
 use transpiler::transpile;
-use token::{Token, TokenKind};
+use token::{Token, TokenKind, DO};
 
 #[test]
 fn test() {
@@ -30,7 +30,7 @@ fn test() {
                 children: vec![], 
                 data: None 
             };
-    parser::complete_parse(&contents, &mut tree, 1);
+    parser::complete_parse(&contents, &mut tree, 1, DO);
     let mut file = File::create("examples/testrs")
         .expect("Someting went wrong creating the file");
     file.write_all(transpile(tree).as_bytes());

@@ -1,14 +1,16 @@
 use regex::{ Regex, Captures };
 use crate::keyword::Keyword;
-use crate::token::{ Token, TokenKind, LiteralKind, Operator, Collection };
+use crate::token::{ Token, TokenKind, LiteralKind, Operator, Collection, DO };
 use crate::ast::Node;
 use crate::lexeme::Lexeme;
 
-pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) -> 
-    Result<bool, String> 
+pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32, begin_mark: &str) -> 
+    Result<&'a str, String> 
 {
     let mut full_code: &'a str = syntax;
     let mut new_line_number = line_number;
+    let mut begin_group_scope = 0;
+    let mut end_group_scope = 0;
     loop {
         let mut result = parse_hash_map(full_code, new_line_number);
 
@@ -120,15 +122,28 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
             full_code = (result_parsed.1).1;
             if tree_with_children.token.kind == TokenKind::Keyword(Keyword::Function) || 
                 tree_with_children.token.kind == TokenKind::Keyword(Keyword::PublicFunction) {
-                    complete_parse(full_code, &mut tree_with_children, line_number);
+                    let result_code = complete_parse(full_code, &mut tree_with_children, line_number, DO);
+                    if let Ok(code) = result_code {
+                        full_code = code;
+                    }
+            }
+
+            if tree_with_children.token.kind == TokenKind::Keyword(Keyword::Do) && begin_mark == DO {
+                begin_group_scope += 1;
+            }
+            if tree_with_children.token.kind == TokenKind::Keyword(Keyword::End) && begin_mark == DO {
+                end_group_scope += 1;
             }
             tree.children.push(tree_with_children);
+            if begin_group_scope == end_group_scope && begin_group_scope > 0 && end_group_scope > 0 {
+                return Ok(full_code)
+            }
         } else {
             return Err(format!("pattern not recognize {}", syntax))
         }
 
         if full_code == "" {
-            return Ok(true)
+            return Ok(full_code)
         }
     }
 }
