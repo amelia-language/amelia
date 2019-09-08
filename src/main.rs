@@ -13,10 +13,12 @@ mod transpiler;
 mod ast;
 mod parser;
 mod lexeme;
+mod block_keyword;
 
 use ast::Node;
 use transpiler::transpile;
-use token::{Token, TokenKind, DO};
+use token::{Token, TokenKind};
+use block_keyword::DO;
 
 #[test]
 fn test() {

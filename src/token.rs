@@ -128,6 +128,3 @@ impl Token {
         Token { kind, span: Span { line }, eos }
     }
 }
-
-pub const DO: &str = "do";
-

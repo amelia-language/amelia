@@ -1,8 +1,9 @@
 use regex::{ Regex, Captures };
 use crate::keyword::Keyword;
-use crate::token::{ Token, TokenKind, LiteralKind, Operator, Collection, DO };
+use crate::token::{ Token, TokenKind, LiteralKind, Operator, Collection };
 use crate::ast::Node;
 use crate::lexeme::Lexeme;
+use crate::block_keyword;
 
 pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32, begin_mark: &str) -> 
     Result<&'a str, String> 
@@ -122,16 +123,25 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32, be
             full_code = (result_parsed.1).1;
             if tree_with_children.token.kind == TokenKind::Keyword(Keyword::Function) || 
                 tree_with_children.token.kind == TokenKind::Keyword(Keyword::PublicFunction) {
-                    let result_code = complete_parse(full_code, &mut tree_with_children, line_number, DO);
+                    let result_code = complete_parse(full_code, &mut tree_with_children, line_number, block_keyword::DO);
                     if let Ok(code) = result_code {
                         full_code = code;
                     }
             }
 
-            if tree_with_children.token.kind == TokenKind::Keyword(Keyword::Do) && begin_mark == DO {
+
+            if tree_with_children.token.kind == TokenKind::Macro {
+                let open_character = &full_code[..1];
+                let result_code = complete_parse(full_code, &mut tree_with_children, line_number, open_character);
+                if let Ok(code) = result_code {
+                    full_code = code;
+                }
+            }
+
+            if block_keyword::match_block_begin(&tree_with_children.token.kind, begin_mark) {
                 begin_group_scope += 1;
             }
-            if tree_with_children.token.kind == TokenKind::Keyword(Keyword::End) && begin_mark == DO {
+            if block_keyword::match_block_end(&tree_with_children.token.kind, begin_mark) {
                 end_group_scope += 1;
             }
             tree.children.push(tree_with_children);
@@ -261,7 +271,7 @@ fn parse_type_with_generics<'a>(syntax: &'a str, line_number: i32) -> Option<(To
 
 fn parse_macro<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
-        static ref RE: Regex = Regex::new("^([A-Za-z_0-9]+![\\(?|{?|\\[?].*[\\)?|}?|\\]?]\\n?)(?s)(.*)$").unwrap();
+        static ref RE: Regex = Regex::new("^([A-Za-z_0-9]+!)(?s)(.*)$").unwrap();
     }
     let token_kind = TokenKind::Macro;
     parse_capture!(syntax, RE, token_kind, line_number, false)

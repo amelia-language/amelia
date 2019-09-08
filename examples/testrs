@@ -40,25 +40,69 @@ struct Cat  Animal {
  let cat_2 = Cat::new(name: "Fofo", age: 2, playful: true);
 
  if cat_1.name == "Fl%ur"  {
- println!("my name is Flur")
+ println!("my name is Flur");
  } else {
- println!(format!("my name is not Flur is {}", cat_1.show_name()))
+ println!(format!("my name is not Flur is {}", cat_1.show_name()));
  }
 
  if cat_2.full_name(last_name: "Marshal") != "Tom"  {
- println!("my name is not Tom")
+ println!("my name is not Tom");
  }
 
  if (4 + 5 == 9) and (7 / 8 != 20)  {
- println!("This is printed")
+ println!("This is printed");
  }
 
- println!("My full name is {}", cat.full_name("Doe"))
+ println!("My full name is {}", cat.full_name("Doe"));
  
  let my_array = [1, 2, 3, 4];
  let my_tuple = (1, 2);
  let my_hash_map : std::collections::HashMap<&str, _> = [("uno",  1),("dos",  2)].iter().cloned().collect();
- let my_vector = vec![1, 2, 3, 4]
+ let my_vector = vec![1, 2, 3, 4];
+
+ #[derive(Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
+enum States {
+ Approved;
+ Cancelled;
+ Disable;
+ Rejected;
+ }
+
+ let state = States::Approved;
+
+  state {
+ Approved [1, 2, 3, 4];
+
+ #[derive(Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
+enum States {
+ Approved;
+ Cancelled;
+ Disable;
+ Rejected;
+ }
+
+ let state = States::Approved;
+
+  state {
+ Approved ("My full name is {}", cat.full_name("Doe"));
+ 
+ let my_array = [1, 2, 3, 4];
+ let my_tuple = (1, 2);
+ let my_hash_map : std::collections::HashMap<&str, _> = [("uno",  1),("dos",  2)].iter().cloned().collect();
+ let my_vector = vec![1, 2, 3, 4];
+
+ #[derive(Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
+enum States {
+ Approved;
+ Cancelled;
+ Disable;
+ Rejected;
+ }
+
+ let state = States::Approved;
+
+  state {
+ Approved [1, 2, 3, 4];
 
  #[derive(Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
 enum States {
