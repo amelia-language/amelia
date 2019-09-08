@@ -207,7 +207,7 @@ fn parse_identifier<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'
 
 fn parse_whitespace<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
     lazy_static! {
-        static ref RE: Regex = Regex::new("^([[:blank:]])(?s)(.*)$").unwrap();
+        static ref RE: Regex = Regex::new("^([[:blank:]]+)(?s)(.*)$").unwrap();
     }
     let token_kind = TokenKind::Whitespace;
     parse_capture!(syntax, RE, token_kind, line_number, false)
