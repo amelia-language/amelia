@@ -110,12 +110,19 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) ->
         }
 
         if let Some(result_parsed) = result {
-            tree.children.push(Node {
-                token: result_parsed.0,
-                children: vec![],
-                data: Some((result_parsed.1).0.to_string())
-            });
+            let token = result_parsed.0;
+            let mut tree_with_children =
+                Node {
+                    token,
+                    children: vec![],
+                    data: Some((result_parsed.1).0.to_string())
+                };
             full_code = (result_parsed.1).1;
+            if tree_with_children.token.kind == TokenKind::Keyword(Keyword::Function) || 
+                tree_with_children.token.kind == TokenKind::Keyword(Keyword::PublicFunction) {
+                    complete_parse(full_code, &mut tree_with_children, line_number);
+            }
+            tree.children.push(tree_with_children);
         } else {
             return Err(format!("pattern not recognize {}", syntax))
         }
@@ -491,6 +498,10 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
             Token::new(TokenKind::Keyword(Keyword::PublicModule), line_number, false),
         ),
         (
+            "function",
+            Token::new(TokenKind::Keyword(Keyword::Function), line_number, false),
+        ),
+        (
             "public function",
             Token::new(TokenKind::Keyword(Keyword::PublicFunction), line_number, false),
         ),
@@ -541,10 +552,6 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
         (
             "not equal",
             Token::new(TokenKind::NotEqual, line_number, false),
-        ),
-        (
-            "function",
-            Token::new(TokenKind::Keyword(Keyword::Function), line_number, false),
         ),
         (
             "mutable",
