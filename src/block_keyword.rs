@@ -20,3 +20,11 @@ pub fn match_block_end(token_kind: &token::TokenKind, begin_mark: &str) -> bool 
     (token_kind == &token::TokenKind::CloseParen && begin_mark == OPEN_PAREN)
 }
 
+pub fn end_character(open_character: &str) -> &str {
+    match open_character {
+        OPEN_PAREN => CLOSE_PAREN,
+        OPEN_BRACE => CLOSE_BRACE,
+        OPEN_BRACKET => CLOSE_BRACKET,
+        _ => ""
+    }
+}

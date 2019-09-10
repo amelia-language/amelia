@@ -121,32 +121,57 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32, be
                     data: Some((result_parsed.1).0.to_string())
                 };
             full_code = (result_parsed.1).1;
-            if tree_with_children.token.kind == TokenKind::Keyword(Keyword::Function) || 
-                tree_with_children.token.kind == TokenKind::Keyword(Keyword::PublicFunction) {
-                    let result_code = complete_parse(full_code, &mut tree_with_children, line_number, block_keyword::DO);
-                    if let Ok(code) = result_code {
-                        full_code = code;
-                    }
-            }
-
 
             if tree_with_children.token.kind == TokenKind::Macro {
                 let open_character = &full_code[..1];
-                let result_code = complete_parse(full_code, &mut tree_with_children, line_number, open_character);
-                if let Ok(code) = result_code {
-                    full_code = code;
-                }
-            }
+                let mut begin_macro = 0;
+                let mut end_macro = 0;
+                let mut code = full_code;
+                let mut macro_body = vec![];
+                for chari in full_code.split("").into_iter() {
+                    if chari == open_character {
+                        begin_macro += 1;
+                    }
+                    if chari == block_keyword::end_character(open_character) {
+                        end_macro += 1;
+                    }
+                    if chari == "\n" {
+                        new_line_number += 1;
+                    }
+                    code = &code[1..];
+                    macro_body.push(chari);
 
-            if block_keyword::match_block_begin(&tree_with_children.token.kind, begin_mark) {
-                begin_group_scope += 1;
-            }
-            if block_keyword::match_block_end(&tree_with_children.token.kind, begin_mark) {
-                end_group_scope += 1;
-            }
-            tree.children.push(tree_with_children);
-            if begin_group_scope == end_group_scope && begin_group_scope > 0 && end_group_scope > 0 {
-                return Ok(full_code)
+                    if begin_macro == end_macro && begin_macro > 0 && end_macro > 0 {
+                        full_code = code;
+                        tree_with_children.children.push(
+                            Node {
+                                token: Token::new(TokenKind::MacroBody, new_line_number, false),
+                                children: vec![],
+                                data: Some(macro_body.join(""))
+                            }
+                        );
+                        break;
+                    }
+                }
+            } else {
+                if tree_with_children.token.kind == TokenKind::Keyword(Keyword::Function) || 
+                    tree_with_children.token.kind == TokenKind::Keyword(Keyword::PublicFunction) {
+                        let result_code = complete_parse(full_code, &mut tree_with_children, line_number, block_keyword::DO);
+                        if let Ok(code) = result_code {
+                            full_code = code;
+                        }
+                }
+
+                if block_keyword::match_block_begin(&tree_with_children.token.kind, begin_mark) {
+                    begin_group_scope += 1;
+                }
+                if block_keyword::match_block_end(&tree_with_children.token.kind, begin_mark) {
+                    end_group_scope += 1;
+                }
+                tree.children.push(tree_with_children);
+                if begin_group_scope == end_group_scope && begin_group_scope > 0 && end_group_scope > 0 {
+                    return Ok(full_code)
+                }
             }
         } else {
             return Err(format!("pattern not recognize {}", syntax))

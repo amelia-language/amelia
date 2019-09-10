@@ -87,6 +87,7 @@ pub enum TokenKind {
     Keyword(keyword::Keyword),
     TypeWithGeneric,
     Macro,
+    MacroBody,
     Unknown,
 }
 
