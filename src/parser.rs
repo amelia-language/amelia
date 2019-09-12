@@ -127,41 +127,7 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32, be
             full_code = (result_parsed.1).1;
 
             if tree_with_children.token.kind == TokenKind::Macro {
-                let open_character = &full_code[..1];
-                let mut begin_macro = 0;
-                let mut end_macro = 0;
-                let mut code = full_code;
-                let mut macro_body = vec![];
-                let mut chari = "";
-                loop {
-                    chari = &code[..1];
-                    if chari == open_character {
-                        begin_macro += 1;
-                    }
-                    if chari == block_keyword::end_character(open_character) {
-                        end_macro += 1;
-                    }
-                    if chari == "\n" {
-                        new_line_number += 1;
-                    }
-                    code = &code[1..];
-                    macro_body.push(chari);
-
-                    if begin_macro == end_macro && begin_macro > 0 && end_macro > 0 {
-                        full_code = code;
-                        if &full_code[..1] == "\n" {
-                            macro_body.push(";");
-                        }
-                        tree_with_children.children.push(
-                            Node {
-                                token: Token::new(TokenKind::MacroBody, new_line_number, false),
-                                children: vec![],
-                                data: Some(macro_body.join(""))
-                            }
-                        );
-                        break;
-                    }
-                }
+                full_code = parse_macro_body(full_code, &mut tree_with_children, line_number);
             } else {
                 if tree_with_children.token.kind == TokenKind::Keyword(Keyword::Function) || 
                     tree_with_children.token.kind == TokenKind::Keyword(Keyword::PublicFunction) {
@@ -666,3 +632,44 @@ fn parse<'a>(pattern: String, syntax: &'a str) -> Option<(&'a str, &'a str)> {
     }
 }
 
+fn parse_macro_body<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) -> &'a str {
+    let mut full_code = syntax;
+    let open_character = &full_code[..1];
+    let mut new_line_number = line_number;
+    let mut begin_macro = 0;
+    let mut end_macro = 0;
+    let mut code = full_code;
+    let mut macro_body = vec![];
+    let mut chari = "";
+    loop {
+        chari = &code[..1];
+        if chari == open_character {
+            begin_macro += 1;
+        }
+        if chari == block_keyword::end_character(open_character) {
+            end_macro += 1;
+        }
+        if chari == "\n" {
+            new_line_number += 1;
+        }
+        code = &code[1..];
+        macro_body.push(chari);
+
+        if begin_macro == end_macro && begin_macro > 0 && end_macro > 0 {
+            full_code = code;
+            if &full_code[..1] == "\n" {
+                macro_body.push(";");
+            }
+            tree.children.push(
+                Node {
+                    token: Token::new(TokenKind::MacroBody, new_line_number, false),
+                    children: vec![],
+                    data: Some(macro_body.join(""))
+                }
+            );
+            break;
+        }
+    }
+
+    full_code
+}
