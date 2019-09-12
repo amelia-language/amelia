@@ -149,6 +149,9 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32, be
 
                     if begin_macro == end_macro && begin_macro > 0 && end_macro > 0 {
                         full_code = code;
+                        if &full_code[..1] == "\n" {
+                            macro_body.push(";");
+                        }
                         tree_with_children.children.push(
                             Node {
                                 token: Token::new(TokenKind::MacroBody, new_line_number, false),
