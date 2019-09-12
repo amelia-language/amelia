@@ -9,7 +9,7 @@ module my_test do
     public name as String
 
     public function show_name(self) do
-      self.name
+      return self.name
     end
   end
 

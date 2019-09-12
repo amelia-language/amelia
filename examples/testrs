@@ -6,7 +6,7 @@ mod my_test {
  pub name: String;
 
  pub fn show_name(self) {
- self.name;
+ return self.name;
  
  }
 
