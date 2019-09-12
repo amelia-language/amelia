@@ -29,9 +29,9 @@ struct Cat  Animal {
  impl Cat {
  pub fn full_name(&self, last_name: String): Result<String, String> {
  if last_name  {
-  Ok(format!("{} {}", self.name, last_name))
+ return Ok(format!("{} {}", self.name, last_name));
  } else {
-  Err("Missing last name")
+ return Err("Missing last name");
  }
  }
  

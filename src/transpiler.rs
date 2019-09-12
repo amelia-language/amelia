@@ -7,7 +7,6 @@ use crate::lexeme::Lexeme;
 
 pub fn transpile(ast: Node) -> String {
     let mut syntax = vec![];
-    let mut new_line = true;
     for node in ast.children {
         if let Some(node_data) = &node.data {
             syntax.push(
@@ -49,7 +48,7 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::Not => "!".to_string(),
                     TokenKind::NotEqual => "!=".to_string(),
                     TokenKind::OpenParen => "(".to_string(),
-                    TokenKind::CloseParen => handle_new_line(&mut new_line, node_data),
+                    TokenKind::CloseParen => str::replace(node_data, "\n", ";\n"),
                     TokenKind::Dot => ".".to_string(),
                     TokenKind::Whitespace => " ".to_string(),
                     TokenKind::NewLine => "\n".to_string(),
@@ -57,9 +56,9 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::Assign => "=".to_string(),
                     TokenKind::DoubleDot => ":".to_string(),
                     TokenKind::NamespaceSeparator => "::".to_string(),
-                    TokenKind::Identifier => handle_new_line(&mut new_line, node_data),
-                    TokenKind::Collection(Collection::Array) => handle_new_line(&mut new_line, node_data),
-                    TokenKind::Collection(Collection::Tuple) => handle_new_line(&mut new_line, node_data),
+                    TokenKind::Identifier => str::replace(node_data, "\n", ";\n"),
+                    TokenKind::Collection(Collection::Array) => str::replace(node_data, "\n", ";\n"),
+                    TokenKind::Collection(Collection::Tuple) => str::replace(node_data, "\n", ";\n"),
                     TokenKind::Collection(Collection::HashMap) => {
                         let raw_items = node_data.split(",").collect::<Vec<_>>();
                         let mut items: Vec<String> = vec![];
@@ -133,11 +132,8 @@ pub fn transpile(ast: Node) -> String {
                         let data_type = str::replace(node_data, "\n", ";\n");
                         data_type.replace("Byte", "u8")
                     },
-                    TokenKind::Lexeme(Lexeme::String) => handle_new_line(&mut new_line, node_data),
-                    TokenKind::Keyword(Keyword::Return) => {
-                        new_line = false;
-                        "".to_string()
-                    },
+                    TokenKind::Lexeme(Lexeme::String) => str::replace(node_data, "\n", ";\n"),
+                    TokenKind::Keyword(Keyword::Return) => "return".to_string(),
                     _ => "".to_string()
                 }
             );
@@ -145,15 +141,4 @@ pub fn transpile(ast: Node) -> String {
         syntax.push(transpile(node));
     }
     syntax.join("")
-}
-
-fn handle_new_line(new_line: &mut bool, data: &str) -> String {
-    if *new_line {
-        str::replace(data, "\n", ";\n")
-    } else {
-        if data.find("\n").is_some() {
-            *new_line = true;
-        }
-        data.to_string()
-    }
 }
