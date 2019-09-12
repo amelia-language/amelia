@@ -126,25 +126,28 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32, be
                 };
             full_code = (result_parsed.1).1;
 
-            if tree_with_children.token.kind == TokenKind::Macro {
-                full_code = parse_macro_body(full_code, &mut tree_with_children, line_number);
-            } else {
-                if tree_with_children.token.kind == TokenKind::Keyword(Keyword::Function) || 
-                    tree_with_children.token.kind == TokenKind::Keyword(Keyword::PublicFunction) {
-                        let result_code = complete_parse(full_code, &mut tree_with_children, line_number, block_keyword::DO);
-                        if let Ok(code) = result_code {
-                            full_code = code;
-                        }
-                }
+            match tree_with_children.token.kind {
+                TokenKind::Macro =>  {
+                    full_code = parse_macro_body(full_code, &mut tree_with_children, line_number);
+                },
+                _ => {
+                    if tree_with_children.token.kind == TokenKind::Keyword(Keyword::Function) || 
+                        tree_with_children.token.kind == TokenKind::Keyword(Keyword::PublicFunction) {
+                            let result_code = complete_parse(full_code, &mut tree_with_children, line_number, block_keyword::DO);
+                            if let Ok(code) = result_code {
+                                full_code = code;
+                            }
+                    }
 
-                if block_keyword::match_block_begin(&tree_with_children.token.kind, begin_mark) {
-                    begin_group_scope += 1;
-                }
-                if block_keyword::match_block_end(&tree_with_children.token.kind, begin_mark) {
-                    end_group_scope += 1;
-                }
-                if begin_group_scope == end_group_scope && begin_group_scope > 0 && end_group_scope > 0 {
-                    return Ok(full_code)
+                    if block_keyword::match_block_begin(&tree_with_children.token.kind, begin_mark) {
+                        begin_group_scope += 1;
+                    }
+                    if block_keyword::match_block_end(&tree_with_children.token.kind, begin_mark) {
+                        end_group_scope += 1;
+                    }
+                    if begin_group_scope == end_group_scope && begin_group_scope > 0 && end_group_scope > 0 {
+                        return Ok(full_code)
+                    }
                 }
             }
             tree.children.push(tree_with_children);
