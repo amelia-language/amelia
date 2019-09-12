@@ -88,6 +88,7 @@ pub enum TokenKind {
     TypeWithGeneric,
     Macro,
     MacroBody,
+    FunctionCall,
     Unknown,
 }
 

@@ -44,6 +44,7 @@ pub fn transpile(ast: Node) -> String {
                     TokenKind::TypeWithGeneric => str::replace(node_data, "\n", ";\n"),
                     TokenKind::Macro => node_data.to_string(),
                     TokenKind::MacroBody => node_data.to_string(),
+                    TokenKind::FunctionCall => node_data.to_string(),
                     TokenKind::Equal => "==".to_string(),
                     TokenKind::Not => "!".to_string(),
                     TokenKind::NotEqual => "!=".to_string(),

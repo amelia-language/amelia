@@ -20,6 +20,14 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32, be
         }
 
         if result.is_none() {
+            result = parse_macro(full_code, new_line_number);
+        }
+
+        if result.is_none() {
+            result = parse_function_call(full_code, new_line_number);
+        }
+
+        if result.is_none() {
             result = parse_borrow(full_code, new_line_number);
         }
 
@@ -53,10 +61,6 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32, be
 
         if result.is_none() {
             result = parse_type_with_generics(full_code, new_line_number);
-        }
-
-        if result.is_none() {
-            result = parse_macro(full_code, new_line_number);
         }
 
         if result.is_none() {
@@ -128,7 +132,9 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32, be
                 let mut end_macro = 0;
                 let mut code = full_code;
                 let mut macro_body = vec![];
-                for chari in full_code.split("").into_iter() {
+                let mut chari = "";
+                loop {
+                    chari = &code[..1];
                     if chari == open_character {
                         begin_macro += 1;
                     }
@@ -168,11 +174,11 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32, be
                 if block_keyword::match_block_end(&tree_with_children.token.kind, begin_mark) {
                     end_group_scope += 1;
                 }
-                tree.children.push(tree_with_children);
                 if begin_group_scope == end_group_scope && begin_group_scope > 0 && end_group_scope > 0 {
                     return Ok(full_code)
                 }
             }
+            tree.children.push(tree_with_children);
         } else {
             return Err(format!("pattern not recognize {}", syntax))
         }
@@ -383,6 +389,14 @@ fn parse_own<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, 
         static ref RE: Regex = Regex::new("^(own\\s)(?s)(.*)$").unwrap();
     }
     let token_kind = TokenKind::Keyword(Keyword::Own);
+    parse_capture!(syntax, RE, token_kind, line_number, false)
+}
+
+fn parse_function_call<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new("^([A-Za-z_0-9]+\\s*\\()(?s)(.*)$").unwrap();
+    }
+    let token_kind = TokenKind::FunctionCall;
     parse_capture!(syntax, RE, token_kind, line_number, false)
 }
 
