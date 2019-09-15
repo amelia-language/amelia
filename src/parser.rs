@@ -20,6 +20,10 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32, be
         }
 
         if result.is_none() {
+            result = parse_macro_rules(full_code, new_line_number);
+        }
+
+        if result.is_none() {
             result = parse_macro(full_code, new_line_number);
         }
 
@@ -127,8 +131,8 @@ pub fn complete_parse<'a>(syntax: &'a str, tree: &mut Node, line_number: i32, be
             full_code = (result_parsed.1).1;
 
             match tree_with_children.token.kind {
-                TokenKind::Macro =>  {
-                    full_code = parse_macro_body(full_code, &mut tree_with_children, line_number);
+                TokenKind::Macro | TokenKind::MacroRules =>  {
+                    full_code = parse_macro_body(full_code, &mut tree_with_children, line_number)?;
                 },
                 _ => {
                     if tree_with_children.token.kind == TokenKind::Keyword(Keyword::Function) || 
@@ -277,6 +281,14 @@ fn parse_macro<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str
         static ref RE: Regex = Regex::new("^([A-Za-z_0-9]+!)(?s)(.*)$").unwrap();
     }
     let token_kind = TokenKind::Macro;
+    parse_capture!(syntax, RE, token_kind, line_number, false)
+}
+
+fn parse_macro_rules<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a str, &'a str))> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new("^(macro_rules!\\s[A-Za-z_0-9]+)(?s)(.*)$").unwrap();
+    }
+    let token_kind = TokenKind::MacroRules;
     parse_capture!(syntax, RE, token_kind, line_number, false)
 }
 
@@ -609,6 +621,10 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
             ":",
             Token::new(TokenKind::DoubleDot, line_number, false),
         ),
+        (
+            "=>",
+            Token::new(TokenKind::FatArrow, line_number, false),
+        ),
     ]
     .into_iter()
     {
@@ -635,9 +651,21 @@ fn parse<'a>(pattern: String, syntax: &'a str) -> Option<(&'a str, &'a str)> {
     }
 }
 
-fn parse_macro_body<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) -> &'a str {
+fn parse_macro_body<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) -> Result<&'a str, &'a str> {
     let mut full_code = syntax;
-    let open_character = &full_code[..1];
+    lazy_static! {
+        static ref RE: Regex = Regex::new("^(\\s*)(?s)(.*)$").unwrap();
+    }
+    let token_kind = TokenKind::Whitespace;
+    let result = parse_capture!(full_code, RE, token_kind, line_number, false);
+
+    if let Some(result_parsed) = result {
+        full_code = (result_parsed.1).1;
+    } else {
+        return Err("parsing error");
+    }
+    let mut open_character = &full_code[..1];
+
     let mut new_line_number = line_number;
     let mut begin_macro = 0;
     let mut end_macro = 0;
@@ -674,5 +702,5 @@ fn parse_macro_body<'a>(syntax: &'a str, tree: &mut Node, line_number: i32) -> &
         }
     }
 
-    full_code
+    Ok(full_code)
 }

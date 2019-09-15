@@ -70,5 +70,19 @@ enum States {
 
  let state = States::Approved;
 
-  state {
- Approved 
+ match state {
+ Approved => "Bill Approved"
+ Rejected => "Bill Rejected"
+ }
+
+ macro_rules! foo{
+    ($arg as ident) => {
+      println!("{}", $arg)
+    };
+  };
+
+ let result_number = Ok(87);
+
+ let borrowed_number = &result_number.unwrap();
+
+ let another_borrowed_number = unwrap 

@@ -75,11 +75,11 @@ module my_test do
     Rejected => "Bill Rejected"
   end
 
-  macro_rules! foo do
-    ($arg as ident) => do
-      return println!("{}", $arg)
-    end
-  end
+  macro_rules! foo {
+    ($arg as ident) => {
+      println!("{}", $arg)
+    };
+  }
 
   let result_number = Ok(87)
 
