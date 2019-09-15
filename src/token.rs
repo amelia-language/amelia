@@ -90,6 +90,7 @@ pub enum TokenKind {
     MacroRules,
     MacroBody,
     FunctionCall,
+    PipeLine,
     Unknown,
 }
 

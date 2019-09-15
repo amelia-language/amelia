@@ -625,6 +625,10 @@ fn parse_to_token<'a>(syntax: &'a str, line_number: i32) -> Option<(Token, (&'a 
             "=>",
             Token::new(TokenKind::FatArrow, line_number, false),
         ),
+        (
+            "\\|>",
+            Token::new(TokenKind::PipeLine, line_number, false),
+        ),
     ]
     .into_iter()
     {
