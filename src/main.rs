@@ -37,4 +37,3 @@ fn test() {
         .expect("Someting went wrong creating the file");
     file.write_all(transpile(tree).as_bytes());
 }
-

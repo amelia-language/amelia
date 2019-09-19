@@ -7,7 +7,7 @@ mod my_test {
 
  pub fn show_name(self) {
  return self.name;
- 
+ }
  }
 
  derive(Serialize, Deserialize);
@@ -34,7 +34,7 @@ struct Cat  Animal {
  return Err("Missing last name");
  }
  }
- 
+ }
 
  let cat_1 = Cat::new(name: "Fl%ur", age: 1, playful: false);
  let cat_2 = Cat::new(name: "Fofo", age: 2, playful: true);
