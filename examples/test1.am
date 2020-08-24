@@ -17,11 +17,15 @@ module my_test do
   public struct Animal do
     public name as String
     public sound as Option<String>
-    public age as Int32
+    public age as Integer
   end
 
   struct Cat inherits Animal do
     playful as Boolean
+  end
+
+  struct Product do
+    price as Float
   end
 
   implements Naming for Cat do
@@ -29,7 +33,7 @@ module my_test do
 
   implements Cat do
     public function full_name(borrow self, last_name as String) as Result<String, String> do
-      if last_name then do
+      if last_name then
         return Ok(format!("{} {}", self.name, last_name))
       else do
         return Err("Missing last name")
@@ -40,17 +44,17 @@ module my_test do
   let cat_1 = Cat::new(name: "Fl%ur", age: 1, playful: false)
   let cat_2 = Cat::new(name: "Fofo", age: 2, playful: true)
 
-  if cat_1.name equal "Fl%ur" then do
+  if cat_1.name == "Fl%ur" then
     println!("my name is Flur")
   else do
     println!(format!("my name is not Flur is {}", cat_1.show_name()))
   end
 
-  if cat_2.full_name(last_name: "Marshal") not equal "Tom" then do
+  if cat_2.full_name(last_name: "Marshal") != "Tom" then
     println!("my name is not Tom")
   end
 
-  if (4 + 5 equal 9) and (7 / 8 not equal 20) then do
+  if (4 + 5 == 9) && (7 / 8 != 20) then
     println!("This is printed")
   end
 
@@ -84,6 +88,8 @@ module my_test do
   let result_number = Ok(87)
 
   let borrowed_number = borrow result_number.unwrap()
+
+  let own_number = own result_number
 
   let another_borrowed_number = unwrap |> result_number |> borrow
 end
